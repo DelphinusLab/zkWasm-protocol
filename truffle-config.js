@@ -18,11 +18,9 @@
  *
  */
 
-const Web3WsProvider = require('web3-providers-ws');
 const Web3HttpProvider = require('web3-providers-http');
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-const fs = require('fs');
 const secrets = require('delphinus-deployment/config/monitor-secrets.json');
 
 const http_options = {

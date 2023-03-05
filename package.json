@@ -10,7 +10,8 @@
     "process": "^0.11.10",
     "truffle": "latest",
     "web3": "^1.5.3",
-    "fs-extra": "^10.0.0"
+    "fs-extra": "^10.0.0",
+    "delphinus-deployment": "file:../delphinus-deployment"
   },
   "scripts": {
     "dev": "npx truffle dev",
