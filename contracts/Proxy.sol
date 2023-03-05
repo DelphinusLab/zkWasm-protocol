@@ -173,7 +173,7 @@ contract Proxy is DelphinusProxy {
     }
 
     uint256 constant BATCH_SIZE = 10;
-    uint256 constant OP_SIZE = 81;
+    uint256 constant OP_SIZE = 81; // 81 bytes
 
     /*
      * @dev Data encodes the delta functions with there verification in reverse order
@@ -190,8 +190,7 @@ contract Proxy is DelphinusProxy {
     ) public {
         require(rid == _rid, "Verify: Unexpected Request Id");
 
-        // [0 - 7]: public inputs
-        // [8]: old root, [9]: new root, [10]: sha_low, [11]: sha_high
+        // [0]: old root, [1]: new root, [2]: sha_low, [3]: sha_high
         uint256[] verify_data = target_instances[0];
 
         require(
@@ -201,12 +200,12 @@ contract Proxy is DelphinusProxy {
 
         uint256 sha_pack = uint256(sha256(tx_data));
         require(
-            sha_pack == (verify_data[8] << 128) + verify_data[9],
+            sha_pack == (verify_data[2] << 128) + verify_data[3],
             "Inconstant: Sha data inconsistant"
         );
 
         require(
-            merkle_root == verify_data[10],
+            merkle_root == verify_data[0],
             "Inconstant: Merkle root dismatch"
         );
 
@@ -224,10 +223,9 @@ contract Proxy is DelphinusProxy {
             }
         }
 
-        uint256 new_merkle_root = verify_data[11];
+        uint256 new_merkle_root = verify_data[1];
         merkle_root = new_merkle_root;
         rid = _rid + BATCH_SIZE;
-
         emit Ack(_rid, 0);
     }
 }
