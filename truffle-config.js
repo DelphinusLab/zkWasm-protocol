@@ -88,7 +88,13 @@ module.exports = {
   compilers: {
     solc: {
       version: "native",    // Fetch exact version from solc-bin (default: truffle's version)
-    }
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 10,
+        },
+      },
+    },
   },
 
   // Note: if you migrated your contracts prior to enabling this field in your Truffle project and want

@@ -21,7 +21,10 @@ interface DelphinusProxy {
 
     function verify(
         bytes calldata tx_data,
-        uint256[] calldata verify_data, // [8]: old root, [9]: new root, [10]: sha_low, [11]: sha_high
+        uint256[] calldata proof,
+        uint256[] calldata verify_instance,
+        uint256[] calldata aux,
+        uint256[][] calldata target_instances,
         uint8 _vid,
         uint256 _rid
     ) external;

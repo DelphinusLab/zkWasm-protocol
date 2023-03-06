@@ -175,44 +175,9 @@ contract Proxy is DelphinusProxy {
     uint256 constant BATCH_SIZE = 10;
     uint256 constant OP_SIZE = 81; // 81 bytes
 
-    /*
-     * @dev Data encodes the delta functions with there verification in reverse order
-     * data = opcode args; opcode' args'; ....
-     */
-    function verify(
-        bytes calldata tx_data,
-        uint256[] calldata proof,
-        uint256[] calldata verify_instance,
-        uint256[] calldata aux,
-        uint256[][] calldata target_instance
-        uint8 _vid,
-        uint256 _rid
+    function perform_txs(
+        bytes calldata tx_data
     ) public {
-        require(rid == _rid, "Verify: Unexpected Request Id");
-
-        // [0]: old root, [1]: new root, [2]: sha_low, [3]: sha_high
-        uint256[] verify_data = target_instances[0];
-
-        require(
-            tx_data.length == OP_SIZE * BATCH_SIZE,
-            "Verify: Insufficient delta operations"
-        );
-
-        uint256 sha_pack = uint256(sha256(tx_data));
-        require(
-            sha_pack == (verify_data[2] << 128) + verify_data[3],
-            "Inconstant: Sha data inconsistant"
-        );
-
-        require(
-            merkle_root == verify_data[0],
-            "Inconstant: Merkle root dismatch"
-        );
-
-        DelphinusVerifier verifier = _get_verifier(_vid);
-        bool v = verifier.verify(proof, verify_instance, aux, target_instance);
-        require(v == true, "ZKVerify: zksnark check failed");
-
         for (uint i = 0; i < BATCH_SIZE; i++) {
             uint8 op_code = uint8(tx_data[i * OP_SIZE]);
             require(transactions.length > op_code, "TX index out of bound");
@@ -222,8 +187,47 @@ contract Proxy is DelphinusProxy {
                 _update_state(update);
             }
         }
+    }
 
-        uint256 new_merkle_root = verify_data[1];
+    /*
+     * @dev Data encodes the delta functions with there verification in reverse order
+     * data = opcode args; opcode' args'; ....
+     */
+    function verify(
+        bytes calldata tx_data,
+        uint256[] calldata proof,
+        uint256[] calldata verify_instance,
+        uint256[] calldata aux,
+        uint256[][] calldata instances,
+        uint8 _vid,
+        uint256 _rid
+    ) public {
+        require(rid == _rid, "Verify: Unexpected Request Id");
+
+        // [0]: old root, [1]: new root, [2]: sha_low, [3]: sha_high
+
+        require(
+            tx_data.length == OP_SIZE * BATCH_SIZE,
+            "Verify: Insufficient delta operations"
+        );
+
+        uint256 sha_pack = uint256(sha256(tx_data));
+        require(
+            sha_pack == (instances[0][2] << 128) + instances[0][3],
+            "Inconstant: Sha data inconsistant"
+        );
+
+        require(
+            merkle_root == instances[0][0],
+            "Inconstant: Merkle root dismatch"
+        );
+
+        DelphinusVerifier verifier = _get_verifier(_vid);
+        verifier.verify(proof, verify_instance, aux, instances);
+
+        perform_txs(tx_data);
+
+        uint256 new_merkle_root = instances[0][1];
         merkle_root = new_merkle_root;
         rid = _rid + BATCH_SIZE;
         emit Ack(_rid, 0);
