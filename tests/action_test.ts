@@ -2,17 +2,57 @@ import BN from "bn.js";
 import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
 import { Field } from "delphinus-curves/src/field";
-import { Web3ProviderMode } from "web3subscriber/src/client";
-import { DelphinusHttpProvider } from "web3subscriber/src/provider";
 import { withL1Client, L1Client } from "../clients/client";
 import { getConfigByChainName } from "delphinus-deployment/src/config";
 import { L1ClientRole } from "delphinus-deployment/src/types";
+import { Web3ProviderMode } from "web3subscriber/src/client";
+import { DelphinusHttpProvider } from "web3subscriber/src/provider";
+import { exit } from "process";
+
+async function getEvent(action: string, blockNumber: string, testChain: string){
+  let config = await getConfigByChainName(L1ClientRole.Monitor, testChain)
+  let providerConfig = {
+      provider: new DelphinusHttpProvider(config.rpcSource),
+      monitorAccount: config.monitorAccount,
+  };
+  let web3 = new Web3ProviderMode(providerConfig);
+  let ProxyJSON = require("../../build/contracts/Proxy.json");
+  let contract = web3.getContract(ProxyJSON, ProxyJSON.networks[config.deviceId].address, config.monitorAccount);
+  let pastEvents = await contract.getWeb3Contract().getPastEvents("allEvents", {
+      filter: { blockNumber: blockNumber },
+      fromBlock: blockNumber,
+  })
+  for(let r of pastEvents){
+      console.log(
+      "--------------------- Get L1 Event: %s ---------------------",
+      r.event
+      );
+      console.log("blockNumber:", r.blockNumber);
+      console.log("blockHash:", r.blockHash);
+      console.log("transactionHash:", r.transactionHash);
+      if(r.returnValues.l2account == "1"){
+        if(action != "withdraw"){
+          console.log("SideEffect Check Failed: Action" + action + "should not call SideEffect!");
+        }else{
+          console.log("SideEffect Check: Passed");
+        }
+      }else{
+          if(action == "withdraw"){
+            console.log("SideEffect Check Failed: Action" + action + "should call SideEffect!");
+          }else{
+            console.log("SideEffect Check: Passed");
+          }
+      }
+  }
+}
 
 async function verify(
   l1client: L1Client,
   command: number[],
   sha_low: BN,
   sha_high: BN,
+  testChain: string,
+  action:  string,
   vid: number = 0
 ) {
   console.log("start to send to:", l1client.getChainIdHex());
@@ -35,6 +75,9 @@ async function verify(
         txhash = hash;
       });
       console.log("done", r.blockHash);
+      console.log("Send Transaction Successfully: Passed");
+      await getEvent(action, r.blockNumber, testChain);
+      console.log("Get AckEvent successfully: Passed");
       return r;
     } catch (e: any) {
       if (txhash !== "") {
@@ -263,15 +306,17 @@ async function main(action: string) {
   let testChain = process.argv[3]
   let config = await getConfigByChainName(L1ClientRole.Monitor, testChain)
   console.log(
-    "===============================================================",
+    "============================== Testing Action: %s ==============================",
+    action
     );
-  console.log("Testing Action:", action);
   await withL1Client(config, false, (l1client: L1Client) => {
     return verify(
       l1client,
       commandBuffer,
       sha_low,
-      sha_high
+      sha_high,
+      config.chainName,
+      action
     );
   });
 }

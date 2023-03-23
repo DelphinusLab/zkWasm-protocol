@@ -177,16 +177,19 @@ contract Proxy is DelphinusProxy {
 
     function perform_txs(
         bytes calldata tx_data
-    ) public {
+    ) public returns (uint256){
+        uint256 ret = 0; 
         for (uint i = 0; i < BATCH_SIZE; i++) {
             uint8 op_code = uint8(tx_data[i * OP_SIZE]);
             require(transactions.length > op_code, "TX index out of bound");
             if (hasSideEffiect[op_code]) {
                 Transaction transaction = _get_transaction(op_code);
                 uint256[] memory update = transaction.sideEffect(tx_data, i * OP_SIZE + 1);
+                ret = 1;
                 _update_state(update);
             }
         }
+        return ret;
     }
 
     /*
@@ -224,12 +227,12 @@ contract Proxy is DelphinusProxy {
 
         DelphinusVerifier verifier = _get_verifier(_vid);
         verifier.verify(proof, verify_instance, aux, instances);
-
-        perform_txs(tx_data);
+        
+        uint256 sideEffectCalled = perform_txs(tx_data);
 
         uint256 new_merkle_root = instances[0][1];
         merkle_root = new_merkle_root;
         rid = _rid + BATCH_SIZE;
-        emit Ack(_rid, 0);
+        emit Ack(_rid, sideEffectCalled);
     }
 }
