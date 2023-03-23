@@ -2,21 +2,62 @@ import BN from "bn.js";
 import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
 import { Field } from "delphinus-curves/src/field";
-import { DelphinusContract, Web3ProviderMode } from "delphinus-web3subscriber/src/client.js";
-import { DelphinusHDWalletProvider } from "delphinus-web3subscriber/src/provider.js";
-import { PromiseBinder } from "delphinus-web3subscriber/src/pbinder.js";
+import { Web3ProviderMode } from "web3subscriber/src/client";
+import { DelphinusHttpProvider } from "web3subscriber/src/provider";
+import { withL1Client, L1Client } from "../clients/client";
+import { getConfigByChainName } from "delphinus-deployment/src/config";
+import { L1ClientRole } from "delphinus-deployment/src/types";
+
+async function verify(
+  l1client: L1Client,
+  command: number[],
+  sha_low: BN,
+  sha_high: BN,
+  vid: number = 0
+) {
+  console.log("start to send to:", l1client.getChainIdHex());
+  while (true) {
+    let txhash = "";
+    try {
+      let proxy = l1client.getProxyContract();
+      let currentRid = new BN(0);
+      let currentMerkleRoot = "";
+      let newToken = new BN(0);
+      await proxy.getProxyInfo().then((Proxyinfo:any)=>{
+        currentRid = Proxyinfo.rid;
+        currentMerkleRoot = Proxyinfo.merkle_root.toString();
+        newToken = new BN(Proxyinfo.amount_token + 1);
+      });
+      await proxy.addToken(newToken);
+      let tx = proxy.verify(command,[new BN("0")],[new BN("0")],[new BN("0")],[[currentMerkleRoot, currentMerkleRoot, sha_low.toString(), sha_high.toString()]], vid, new BN(currentRid));
+      let r = await tx.when("Verify", "transactionHash", (hash: string) => {
+        console.log("Get transactionHash", hash);
+        txhash = hash;
+      });
+      console.log("done", r.blockHash);
+      return r;
+    } catch (e: any) {
+      if (txhash !== "") {
+        console.log("exception with transactionHash ready", " will retry ...");
+        console.log("exception with transactionHash ready", " will retry ...");
+        throw e;
+      } else {
+        if (e.message == "ESOCKETTIMEDOUT") {
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+        } else if (e.message == "nonce too low") {
+          console.log("failed on:", l1client.getChainIdHex(), e.message); // not sure
+          return;
+        } else {
+          console.log("Unhandled exception during verify");
+          console.log(e);
+          throw e;
+        }
+      }
+    }
+  }
+}
 
 async function main(action: string) {
-  let BridgeJSON = require("../../build/contracts/Proxy.json");
-  let address = BridgeJSON.networks["5"].address;
-  let monitorAccount = "0x4D9A852e6AECD3A6E87FecE2cA109780E45E6F2D";
-  let privKey = "0xe1336538174201795c5b0b4a90eeece9c060386751684c0ce8eefa003e3d8782";
-  let rpcSource = "https://goerli.infura.io/v3/1c8e4178f8954e01a95c8eef7b8af2b7";
-  let web3 = new Web3ProviderMode({
-    provider: new DelphinusHDWalletProvider(privKey, rpcSource),
-    monitorAccount: monitorAccount,
-  });
-  let contract = new DelphinusContract(web3, BridgeJSON, address, monitorAccount)
   let pendingEvents: [Field, Field[]][] = [];
   if(action == "addpool"){
     let nonce = 0;
@@ -204,9 +245,9 @@ async function main(action: string) {
       .join("")
   )
   .join("");
-const hvalue = sha256(hexEnc.parse(data)).toString();
-const sha_low = new BN(hvalue.slice(0, 32), "hex", "be");
-const sha_high = new BN(hvalue.slice(32, 64), "hex", "be");
+  const hvalue = sha256(hexEnc.parse(data)).toString();
+  const sha_low = new BN(hvalue.slice(0, 32), "hex", "be");
+  const sha_high = new BN(hvalue.slice(32, 64), "hex", "be");
 
 
   const commandBuffer = pendingEvents.map(
@@ -218,48 +259,21 @@ const sha_high = new BN(hvalue.slice(32, 64), "hex", "be");
         e[1][6].v.toArray('be', 32),
         e[1][7].v.toArray('be', 32)
       ]).flat(2);
-  try{
-    let currentRid = new BN(0);
-    let currentMerkleRoot = "";
-    let newToken = new BN(0);
-    await contract.getWeb3Contract().methods.getProxyInfo().call().then((Proxyinfo:any)=>{
-      currentRid = Proxyinfo.rid;
-      currentMerkleRoot = Proxyinfo.merkle_root.toString();
-      newToken = new BN(Proxyinfo.amount_token + 1);
-    });
-    contract.getWeb3Contract().methods.addToken(newToken).send()
-    console.log("start to send TX to Goerli");
-    console.log("Current rid:",currentRid); 
-    const pbinder = new PromiseBinder();
-    let tx = pbinder.return(async () => {
-      return await pbinder.bind(
-        "Verify",
-        contract.getWeb3Contract().methods.verify(commandBuffer,[new BN("0")],[new BN("0")],[new BN("0")],[[currentMerkleRoot, currentMerkleRoot, sha_low.toString(), sha_high.toString()]], 0, currentRid).send()
-      );
-    });
-    let txhash = "";
-    let r = await tx.when("Verify", "transactionHash", (hash: string) => {
-      console.log("Get transactionHash:", hash);
-      txhash = hash;
-    });
-    console.log("Get blockHash:", r.blockHash);
-    console.log("done");
-  }catch(e){
-    console.log(e);
-  }
 
-  let pastEvents = await contract.getWeb3Contract().getPastEvents("allEvents", {
-    fromBlock: 8696475,
-  })
-  for(let r of pastEvents){
-      console.log(
-        "======================= Get L1 Event: %s ======================",
-        r.event
-      );
-      console.log("blockNumber:", r.blockNumber);
-      console.log("blockHash:", r.blockHash);
-      console.log("transactionHash:", r.transactionHash);
-  }
+  let testChain = process.argv[3]
+  let config = await getConfigByChainName(L1ClientRole.Monitor, testChain)
+  console.log(
+    "===============================================================",
+    );
+  console.log("Testing Action:", action);
+  await withL1Client(config, false, (l1client: L1Client) => {
+    return verify(
+      l1client,
+      commandBuffer,
+      sha_low,
+      sha_high
+    );
+  });
 }
 
 main(process.argv[2]).then(v => {process.exit();})
