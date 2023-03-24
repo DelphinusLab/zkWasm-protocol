@@ -1,7 +1,7 @@
 cd node_modules/delphinus-curves
-npm install
+npm run prepare
 cd -
 
 cd node_modules/web3subscriber
-npm install
+npm run prepare
 cd -
