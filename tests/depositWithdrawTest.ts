@@ -182,7 +182,7 @@ async function main() {
     let tokenIndex = tokenIdx;
     let amount = 1;
     let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);
-    let l1address = encodeL1address("4D9A852e6AECD3A6E87FecE2cA109780E45E6F2D", parseInt(config.deviceId).toString(16));
+    let l1address = encodeL1address(config.monitorAccount.replace("0x", ""), parseInt(config.deviceId).toString(16));
     for (let i=0; i<10; i++){
         pendingEvents.push(
         [

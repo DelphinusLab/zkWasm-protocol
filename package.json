@@ -21,7 +21,7 @@
   "scripts": {
     "dev": "npx truffle dev",
     "prepare": "npx tsc && sh installDep.sh",
-    "test": "sh actionTest.sh"
+    "test": "bash actionTest.sh"
   },
   "exports": {
     "./*": "./dist/*.js"
