@@ -10,12 +10,6 @@ import { encodeL1address, toHexStr } from "web3subscriber/src/addresses";
 import { PromiseBinder } from "web3subscriber/src/pbinder";
 import { number } from "yargs";
 
-
-function toHexStrFromNumberNoPading(num: number){
-    let c = new BN(num);
-    return c.toString(16);
-}
-
 async function mintToken(testChain: string) {
     let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);
     let account = config.monitorAccount;
