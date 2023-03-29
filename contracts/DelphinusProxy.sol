@@ -26,6 +26,6 @@ interface DelphinusProxy {
         uint256[] calldata aux,
         uint256[][] calldata target_instances,
         uint8 _vid,
-        uint256 _rid
+        RidInfo memory ridInfo
     ) external;
 }

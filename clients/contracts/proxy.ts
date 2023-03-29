@@ -51,6 +51,11 @@ export interface WithDraw {
   nonce: string;
 }
 
+export interface RidInfo {
+  rid: BN;
+  batch_size: BN;
+}
+
 function hexcmp(x: string, y: string) {
   const xx = new BN(x, "hex");
   const yy = new BN(y, "hex");
@@ -82,7 +87,7 @@ export class ProxyContract extends DelphinusContract {
     return this.getWeb3Contract().methods.addToken(tokenid).send();
   }
 
-  private _verify(calldata: number[], verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: BN) {
+  private _verify(calldata: number[], verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
     const tx = this.getWeb3Contract().methods.verify(
       calldata,
       verifydata,
@@ -90,7 +95,10 @@ export class ProxyContract extends DelphinusContract {
       aux,
       instances,
       vid,
-      rid,
+      {
+        rid: rid.rid.toString(),
+        batch_size: rid.batch_size.toString()
+      },
     );
     return tx.send();
   }
@@ -101,7 +109,7 @@ export class ProxyContract extends DelphinusContract {
       .send();
   }
 
-  verify(calldata: number[], verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: BN) {
+  verify(calldata: number[], verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
     const pbinder = new PromiseBinder();
 
     return pbinder.return(async () => {

@@ -3,6 +3,7 @@ import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
 import { Field } from "delphinus-curves/src/field";
 import { withL1Client, L1Client } from "../clients/client";
+import { RidInfo } from "../clients/contracts/proxy";
 import { getConfigByChainName } from "delphinus-deployment/src/config";
 import { L1ClientRole } from "delphinus-deployment/src/types";
 import { Web3ProviderMode } from "web3subscriber/src/client";
@@ -69,7 +70,8 @@ async function verify(
         newToken = new BN(Proxyinfo.amount_token + 1);
       });
       await proxy.addToken(newToken);
-      let tx = proxy.verify(command,[new BN("0")],[new BN("0")],[new BN("0")],[[currentMerkleRoot, currentMerkleRoot, sha_low.toString(), sha_high.toString()]], vid, new BN(currentRid));
+      let ridInfo: RidInfo = {rid: new BN(currentRid), batch_size: new BN("10")};
+      let tx = proxy.verify(command,[new BN("0")],[new BN("0")],[new BN("0")],[[currentMerkleRoot, currentMerkleRoot, sha_low.toString(), sha_high.toString()]], vid, ridInfo);
       let r = await tx.when("Verify", "transactionHash", (hash: string) => {
         console.log("Get transactionHash", hash);
         txhash = hash;

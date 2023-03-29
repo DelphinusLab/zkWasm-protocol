@@ -27,9 +27,9 @@
       "constant": true
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.15+commit.e14f2714\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"sideEffect\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/actions/Swap.sol\":\"Swap\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":10},\"remappings\":[]},\"sources\":{\"project:/contracts/Transaction.sol\":{\"keccak256\":\"0x4189803b764af5639d5a4e1611f282e1d9d3ed566e79b11cac516ab747d565b3\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://729724bd94c68f48aff17bcdae21a229002f5133a4de08a684a54156d83564d9\",\"dweb:/ipfs/QmRg1ZeYJgfeb12vprQjGtTnbNvAgeMABmUWBM6kx4xJzh\"]},\"project:/contracts/actions/Swap.sol\":{\"keccak256\":\"0x3d4954c9798a1bc440210b6acedeaa1d882d98027b107c7b0d40ef34bbcd08b9\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://a98ace54cf0ab8905980b09fb432f431e551307ce69a23dc0d1a0f87e7da8ed6\",\"dweb:/ipfs/QmRGBMkgBVLfBSCKxVSYBxp1mjgAJZi5E5baxC1Kev3yR7\"]}},\"version\":1}",
-  "bytecode": "0x608060405234801561001057600080fd5b5061015b806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80634ab51c0314610030575b600080fd5b61005461003e36600461006a565b5050604080516000815260208101909152919050565b60405161006191906100e1565b60405180910390f35b60008060006040848603121561007f57600080fd5b83356001600160401b038082111561009657600080fd5b818601915086601f8301126100aa57600080fd5b8135818111156100b957600080fd5b8760208285010111156100cb57600080fd5b6020928301989097509590910135949350505050565b6020808252825182820181905260009190848201906040850190845b81811015610119578351835292840192918401916001016100fd565b5090969550505050505056fea264697066735822122012e08c890c6a1f61326ecbf10a1fc7980e50f78fbb548c6ffea5164ce0236e5064736f6c634300080f0033",
-  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c80634ab51c0314610030575b600080fd5b61005461003e36600461006a565b5050604080516000815260208101909152919050565b60405161006191906100e1565b60405180910390f35b60008060006040848603121561007f57600080fd5b83356001600160401b038082111561009657600080fd5b818601915086601f8301126100aa57600080fd5b8135818111156100b957600080fd5b8760208285010111156100cb57600080fd5b6020928301989097509590910135949350505050565b6020808252825182820181905260009190848201906040850190845b81811015610119578351835292840192918401916001016100fd565b5090969550505050505056fea264697066735822122012e08c890c6a1f61326ecbf10a1fc7980e50f78fbb548c6ffea5164ce0236e5064736f6c634300080f0033",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"sideEffect\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/actions/Swap.sol\":\"Swap\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":10},\"remappings\":[]},\"sources\":{\"project:/contracts/Transaction.sol\":{\"keccak256\":\"0x4189803b764af5639d5a4e1611f282e1d9d3ed566e79b11cac516ab747d565b3\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://729724bd94c68f48aff17bcdae21a229002f5133a4de08a684a54156d83564d9\",\"dweb:/ipfs/QmRg1ZeYJgfeb12vprQjGtTnbNvAgeMABmUWBM6kx4xJzh\"]},\"project:/contracts/actions/Swap.sol\":{\"keccak256\":\"0x3d4954c9798a1bc440210b6acedeaa1d882d98027b107c7b0d40ef34bbcd08b9\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://a98ace54cf0ab8905980b09fb432f431e551307ce69a23dc0d1a0f87e7da8ed6\",\"dweb:/ipfs/QmRGBMkgBVLfBSCKxVSYBxp1mjgAJZi5E5baxC1Kev3yR7\"]}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b5061015b806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80634ab51c0314610030575b600080fd5b61005461003e36600461006a565b5050604080516000815260208101909152919050565b60405161006191906100e1565b60405180910390f35b60008060006040848603121561007f57600080fd5b83356001600160401b038082111561009657600080fd5b818601915086601f8301126100aa57600080fd5b8135818111156100b957600080fd5b8760208285010111156100cb57600080fd5b6020928301989097509590910135949350505050565b6020808252825182820181905260009190848201906040850190845b81811015610119578351835292840192918401916001016100fd565b5090969550505050505056fea2646970667358221220eaa01847f337cabe3f7b300b2233987805825d5c71cb9df3de23f5e89eb7740864736f6c63430008110033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c80634ab51c0314610030575b600080fd5b61005461003e36600461006a565b5050604080516000815260208101909152919050565b60405161006191906100e1565b60405180910390f35b60008060006040848603121561007f57600080fd5b83356001600160401b038082111561009657600080fd5b818601915086601f8301126100aa57600080fd5b8135818111156100b957600080fd5b8760208285010111156100cb57600080fd5b6020928301989097509590910135949350505050565b6020808252825182820181905260009190848201906040850190845b81811015610119578351835292840192918401916001016100fd565b5090969550505050505056fea2646970667358221220eaa01847f337cabe3f7b300b2233987805825d5c71cb9df3de23f5e89eb7740864736f6c63430008110033",
   "immutableReferences": {},
   "generatedSources": [],
   "deployedGeneratedSources": [
@@ -1293,7 +1293,7 @@
   "sourceMap": "92:164:23:-:0;;;;;;;;;;;;;;;;;;;",
   "deployedSourceMap": "92:164:23:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;126:128;;;;;;:::i;:::-;-1:-1:-1;;233:16:23;;;247:1;233:16;;;;;;;;;226:23;-1:-1:-1;126:128:23;;;;;;;;:::i;:::-;;;;;;;;14:665:25;93:6;101;109;162:2;150:9;141:7;137:23;133:32;130:52;;;178:1;175;168:12;130:52;205:23;;-1:-1:-1;;;;;277:14:25;;;274:34;;;304:1;301;294:12;274:34;342:6;331:9;327:22;317:32;;387:7;380:4;376:2;372:13;368:27;358:55;;409:1;406;399:12;358:55;449:2;436:16;475:2;467:6;464:14;461:34;;;491:1;488;481:12;461:34;538:7;531:4;522:6;518:2;514:15;510:26;507:39;504:59;;;559:1;556;549:12;504:59;590:4;582:13;;;;614:6;;-1:-1:-1;652:20:25;;;;639:34;;14:665;-1:-1:-1;;;;14:665:25:o;684:632::-;855:2;907:21;;;977:13;;880:18;;;999:22;;;826:4;;855:2;1078:15;;;;1052:2;1037:18;;;826:4;1121:169;1135:6;1132:1;1129:13;1121:169;;;1196:13;;1184:26;;1265:15;;;;1230:12;;;;1157:1;1150:9;1121:169;;;-1:-1:-1;1307:3:25;;684:632;-1:-1:-1;;;;;;684:632:25:o",
   "source": "// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.0;\nimport \"../Transaction.sol\";\ncontract Swap is Transaction {\n\n  function sideEffect(bytes calldata, uint) public pure override\n    returns (uint256[] memory) {\n    return new uint256[](0);\n  }\n}\n",
-  "sourcePath": "/home/ruilaizhang/work/zkWasm-protocol/contracts/actions/Swap.sol",
+  "sourcePath": "/home/yyu/git/zkWasm-protocol/contracts/actions/Swap.sol",
   "ast": {
     "absolutePath": "project:/contracts/actions/Swap.sol",
     "exportedSymbols": {
@@ -1341,6 +1341,9 @@
             "baseName": {
               "id": 3964,
               "name": "Transaction",
+              "nameLocations": [
+                "109:11:23"
+              ],
               "nodeType": "IdentifierPath",
               "referencedDeclaration": 3715,
               "src": "109:11:23"
@@ -1436,6 +1439,7 @@
                     "isPure": true,
                     "kind": "functionCall",
                     "lValueRequested": false,
+                    "nameLocations": [],
                     "names": [],
                     "nodeType": "FunctionCall",
                     "src": "233:16:23",
@@ -1586,7 +1590,7 @@
   },
   "compiler": {
     "name": "solc",
-    "version": "0.8.15+commit.e14f2714.Linux.g++"
+    "version": "0.8.17+commit.8df45f5f.Linux.g++"
   },
   "networks": {
     "5": {
@@ -1594,10 +1598,16 @@
       "links": {},
       "address": "0x97D7182cC48B35b91E1B20F5614942bfDf8ECF61",
       "transactionHash": "0x165924844aadc202815f7f7f2ae531efd9a97bd80f393730dffab0a9f3b12f02"
+    },
+    "97": {
+      "events": {},
+      "links": {},
+      "address": "0xcFb5bC3a40fB7876b02e87041EBdE960AD98197D",
+      "transactionHash": "0x4d706aac26fe3e333ff300c3692215e1327945032458825560768370deb1ba4b"
     }
   },
   "schemaVersion": "3.4.13",
-  "updatedAt": "2023-03-24T00:29:39.759Z",
+  "updatedAt": "2023-03-29T01:48:37.208Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
