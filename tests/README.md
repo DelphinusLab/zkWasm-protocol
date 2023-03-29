@@ -1,3 +1,8 @@
+## How do deploy testChain
+1. If there is no change in solidity contracts. you don't need to redpoly contracts. Contracts had deployed on goerli already.
+2. If there are some changes in proxy.sol or verify.sol, need to redeploy file2, run `npx truffle migrate --f 2 --to 2 --network ${TESTCHAIN}`
+3. If there are more changes other than proxy.sol and verify.sol, need to re-deploy all, run `npx truffle migrate --network ${TESTCHAIN}`
+
 ## How to use:
 1. Clone both zkWasam-protocol and delphinus-deployment Repos and place these two folder in parallel.
 2. Modify confidential config: Fill testChain's relevent confidential configs in `monitor-secrets.json` and `eth-config.ts` in `delphinus-deployment/config`
