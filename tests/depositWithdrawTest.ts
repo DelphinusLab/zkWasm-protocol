@@ -108,6 +108,7 @@ async function verify(
   sha_low: BN,
   sha_high: BN,
   totalAmount: BN,
+  batchSize: string,
   testChain: string,
   vid: number = 0
 ) {
@@ -129,7 +130,7 @@ async function verify(
         currentRid = Proxyinfo.rid;
         currentMerkleRoot = Proxyinfo.merkle_root.toString();
       });
-      let ridInfo: RidInfo = {rid: new BN(currentRid), batch_size: new BN("1")};
+      let ridInfo: RidInfo = {rid: new BN(currentRid), batch_size: new BN(batchSize)};
       let tx = proxy.verify(command,[new BN("0")],[new BN("0")],[new BN("0")],[[currentMerkleRoot, currentMerkleRoot, sha_low.toString(), sha_high.toString()]], vid, ridInfo);
       let r = await tx.when("Verify", "transactionHash", (hash: string) => {
         console.log("Get transactionHash", hash);
@@ -174,6 +175,7 @@ async function verify(
 
 async function main() {
     let testChain = process.argv[2];
+    let batchSize = process.argv[3];
     let pendingEvents: [Field, Field[]][] = [];
     console.log(
         "========================== Deposit & Withdraw Balance Check =========================="
@@ -192,7 +194,7 @@ async function main() {
     let amount = 1;
     let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);
     let l1address = encodeL1address(config.monitorAccount.replace("0x", ""), parseInt(config.deviceId).toString(16));
-    for (let i=0; i<1; i++){
+    for (let i=0; i<parseInt(batchSize); i++){
         pendingEvents.push(
         [
             new Field(1),
@@ -252,7 +254,8 @@ async function main() {
       data,
       sha_low,
       sha_high,
-      new BN(amount * 1),
+      new BN(amount * parseInt(batchSize)),
+      batchSize,
       testChain
       );
   });

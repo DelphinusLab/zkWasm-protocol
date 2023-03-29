@@ -20,7 +20,9 @@ then
     node dist/tests/action_test.js supply ${TESTCHAIN}
     node dist/tests/action_test.js swap ${TESTCHAIN}
     node dist/tests/action_test.js withdraw ${TESTCHAIN}
-    node dist/tests/depositWithdrawTest.js ${TESTCHAIN}
+    node dist/tests/depositWithdrawTest.js ${TESTCHAIN} "10"
+    node dist/tests/depositWithdrawTest.js ${TESTCHAIN} "5"
+    node dist/tests/depositWithdrawTest.js ${TESTCHAIN} "1"
 else
     exit 0
 fi
