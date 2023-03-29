@@ -8,13 +8,7 @@ import { getConfigByChainName } from "delphinus-deployment/src/config";
 import { L1ClientRole } from "delphinus-deployment/src/types";
 import { encodeL1address, toHexStr } from "web3subscriber/src/addresses";
 import { PromiseBinder } from "web3subscriber/src/pbinder";
-import { number } from "yargs";
-
-
-function toHexStrFromNumberNoPading(num: number){
-    let c = new BN(num);
-    return c.toString(16);
-}
+import { dataToBN } from "../clients/client";
 
 async function mintToken(testChain: string) {
     let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);
@@ -182,12 +176,6 @@ async function main() {
         );
       await mintToken(testChain);
       let tokenIdx = await addToken(testChain);
-    function dataToBN(data: any) {
-      if (data.toHex) {
-        data = data.toHex();
-      }
-      return new BN(data, 16);
-    }
     let nonce = 0;
     let accountIndex = 0;
     let tokenIndex = tokenIdx;

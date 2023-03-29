@@ -37,6 +37,13 @@ export function getChargeAddress(deviceId: string) {
   return encodedChargeAddress;
 }
 
+export function dataToBN(data: any) {
+  if (data.toHex) {
+    data = data.toHex();
+  }
+  return new BN(data, 16);
+}
+
 export class L1Client {
   readonly web3: DelphinusWeb3;
   private readonly config: ChainConfig;
