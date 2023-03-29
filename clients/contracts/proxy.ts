@@ -75,6 +75,13 @@ export class ProxyContract extends DelphinusContract {
     return contractsInfo.addressMap.proxy[chainId].address;
   }
 
+  static checkAddHexPrefix(hexStr: string) {
+    let s:string = hexStr;
+    if(s.substring(0,2) != "0x")
+      s = "0x" + s;
+    return s;
+  }
+
   getProxyInfo() {
     return this.getWeb3Contract().methods.getProxyInfo().call();
   }
@@ -87,9 +94,11 @@ export class ProxyContract extends DelphinusContract {
     return this.getWeb3Contract().methods.addToken(tokenid).send();
   }
 
-  private _verify(calldata: number[], verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
+  private _verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
+    const calldataChecked:string = ProxyContract.checkAddHexPrefix(calldata);
+
     const tx = this.getWeb3Contract().methods.verify(
-      calldata,
+      calldataChecked,
       verifydata,
       verifyInstance,
       aux,
@@ -109,7 +118,7 @@ export class ProxyContract extends DelphinusContract {
       .send();
   }
 
-  verify(calldata: number[], verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
+  verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
     const pbinder = new PromiseBinder();
 
     return pbinder.return(async () => {

@@ -49,7 +49,7 @@ async function getEvent(action: string, blockNumber: string, testChain: string){
 
 async function verify(
   l1client: L1Client,
-  command: number[],
+  command: string,
   sha_low: BN,
   sha_high: BN,
   testChain: string,
@@ -294,17 +294,6 @@ async function main(action: string) {
   const sha_low = new BN(hvalue.slice(0, 32), "hex", "be");
   const sha_high = new BN(hvalue.slice(32, 64), "hex", "be");
 
-
-  const commandBuffer = pendingEvents.map(
-      e => [
-        e[0].v.toArray('be', 1),
-        e[1][3].v.toArray('be', 8),
-        e[1][4].v.toArray('be', 4),
-        e[1][5].v.toArray('be', 4),
-        e[1][6].v.toArray('be', 32),
-        e[1][7].v.toArray('be', 32)
-      ]).flat(2);
-
   let testChain = process.argv[3]
   let config = await getConfigByChainName(L1ClientRole.Monitor, testChain)
   console.log(
@@ -314,7 +303,7 @@ async function main(action: string) {
   await withL1Client(config, false, (l1client: L1Client) => {
     return verify(
       l1client,
-      commandBuffer,
+      data,
       sha_low,
       sha_high,
       config.chainName,

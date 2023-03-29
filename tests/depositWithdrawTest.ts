@@ -6,9 +6,15 @@ import { withL1Client, L1Client } from "../clients/client";
 import { RidInfo } from "../clients/contracts/proxy";
 import { getConfigByChainName } from "delphinus-deployment/src/config";
 import { L1ClientRole } from "delphinus-deployment/src/types";
-import { encodeL1address } from "web3subscriber/src/addresses";
+import { encodeL1address, toHexStr } from "web3subscriber/src/addresses";
 import { PromiseBinder } from "web3subscriber/src/pbinder";
+import { number } from "yargs";
 
+
+function toHexStrFromNumberNoPading(num: number){
+    let c = new BN(num);
+    return c.toString(16);
+}
 
 async function mintToken(testChain: string) {
     let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);
@@ -21,7 +27,8 @@ async function mintToken(testChain: string) {
           pbinder.snapshot("Mint");
           console.log("mint token:", token.address());
           let balance = await token.balanceOf(account);
-          if(balance < new BN(100)){
+          
+          if(balance.cmp(new BN(100)) == -1) {
             console.log("Monitor Account's balance before mint:", balance.toString(10));
             await pbinder.bind("mint", token.mint(new BN("1000")));
             balance = await token.balanceOf(account);
@@ -97,7 +104,7 @@ async function deposit(l1client: L1Client, depositAmount: BN, testChain: string)
 
 async function verify(
   l1client: L1Client,
-  command: number[],
+  command: string,
   sha_low: BN,
   sha_high: BN,
   totalAmount: BN,
@@ -122,7 +129,7 @@ async function verify(
         currentRid = Proxyinfo.rid;
         currentMerkleRoot = Proxyinfo.merkle_root.toString();
       });
-      let ridInfo: RidInfo = {rid: new BN(currentRid), batch_size: new BN("10")};
+      let ridInfo: RidInfo = {rid: new BN(currentRid), batch_size: new BN("1")};
       let tx = proxy.verify(command,[new BN("0")],[new BN("0")],[new BN("0")],[[currentMerkleRoot, currentMerkleRoot, sha_low.toString(), sha_high.toString()]], vid, ridInfo);
       let r = await tx.when("Verify", "transactionHash", (hash: string) => {
         console.log("Get transactionHash", hash);
@@ -185,7 +192,7 @@ async function main() {
     let amount = 1;
     let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);
     let l1address = encodeL1address(config.monitorAccount.replace("0x", ""), parseInt(config.deviceId).toString(16));
-    for (let i=0; i<10; i++){
+    for (let i=0; i<1; i++){
         pendingEvents.push(
         [
             new Field(1),
@@ -222,18 +229,7 @@ async function main() {
   const hvalue = sha256(hexEnc.parse(data)).toString();
   const sha_low = new BN(hvalue.slice(0, 32), "hex", "be");
   const sha_high = new BN(hvalue.slice(32, 64), "hex", "be");
-
-
-  const commandBuffer = pendingEvents.map(
-      e => [
-        e[0].v.toArray('be', 1),
-        e[1][3].v.toArray('be', 8),
-        e[1][4].v.toArray('be', 4),
-        e[1][5].v.toArray('be', 4),
-        e[1][6].v.toArray('be', 32),
-        e[1][7].v.toArray('be', 32)
-      ]).flat(2);
-
+    
   console.log(
     "--------------------------- Testing Action: Deposit ---------------------------"
     );
@@ -253,10 +249,10 @@ async function main() {
   await withL1Client(config, false, (l1client: L1Client) => {
       return verify(
       l1client,
-      commandBuffer,
+      data,
       sha_low,
       sha_high,
-      new BN(amount * 10),
+      new BN(amount * 1),
       testChain
       );
   });
