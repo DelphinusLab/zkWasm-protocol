@@ -8,7 +8,7 @@ import { getConfigByChainName } from "delphinus-deployment/src/config";
 import { L1ClientRole } from "delphinus-deployment/src/types";
 import { Web3ProviderMode } from "web3subscriber/src/client";
 import { DelphinusHttpProvider } from "web3subscriber/src/provider";
-import { exit } from "process";
+import { dataToBN } from "../clients/client";
 
 async function getEvent(action: string, blockNumber: string, testChain: string){
   let config = await getConfigByChainName(L1ClientRole.Monitor, testChain)
@@ -118,13 +118,13 @@ async function main(action: string) {
           new Field(0), 
           new Field(0),
           new Field(0), 
-          new Field(nonce+i), 
-          new Field(tokenIndex0+i), 
-          new Field(tokenIndex1+i), 
+          new Field(dataToBN(nonce+i)), 
+          new Field(dataToBN(tokenIndex0+i)), 
+          new Field(dataToBN(tokenIndex1+i)), 
           new Field(0), 
           new Field(0), 
-          new Field(poolIndex+i),
-          new Field(callerAccountIndex+i)
+          new Field(dataToBN(poolIndex+i)),
+          new Field(dataToBN(callerAccountIndex+i))
           ]
       ]);
     }
@@ -143,12 +143,12 @@ async function main(action: string) {
           new Field(0), 
           new Field(0),
           new Field(0), 
-          new Field(nonce+i), 
-          new Field(accountIndex+i), 
-          new Field(tokenIndex+i), 
-          new Field(amount+i), 
-          new Field(l1_tx_hash+i), 
-          new Field(callerAccountIndex+i),
+          new Field(dataToBN(nonce+i)), 
+          new Field(dataToBN(accountIndex+i)), 
+          new Field(dataToBN(tokenIndex+i)), 
+          new Field(dataToBN(amount+i)), 
+          new Field(dataToBN(l1_tx_hash+i)), 
+          new Field(dataToBN(callerAccountIndex+i)),
           new Field(0)
           ]
       ]);
@@ -167,11 +167,11 @@ async function main(action: string) {
           new Field(0), 
           new Field(0), 
           new Field(0), 
-          new Field(nonce+i),
-          new Field(accountIndex+i),
-          new Field(poolIndex+i),
-          new Field(amount0+i),
-          new Field(amount1+i),
+          new Field(dataToBN(nonce+i)),
+          new Field(dataToBN(accountIndex+i)),
+          new Field(dataToBN(poolIndex+i)),
+          new Field(dataToBN(amount0+i)),
+          new Field(dataToBN(amount1+i)),
           new Field(0),
           new Field(0)
           ]
@@ -188,8 +188,8 @@ async function main(action: string) {
           new Field(0),
           new Field(0),
           new Field(0),
-          new Field(nonce+i),
-          new Field(accountIndex+i),
+          new Field(dataToBN(nonce+i)),
+          new Field(dataToBN(accountIndex+i)),
           new Field(0),
           new Field(0),
           new Field(0),
@@ -212,11 +212,11 @@ async function main(action: string) {
           new Field(0),
           new Field(0),
           new Field(0),
-          new Field(nonce+i),
-          new Field(accountIndex+i),
-          new Field(poolIndex+i),
-          new Field(amount0+i),
-          new Field(amount1+i),
+          new Field(dataToBN(nonce+i)),
+          new Field(dataToBN(accountIndex+i)),
+          new Field(dataToBN(poolIndex+i)),
+          new Field(dataToBN(amount0+i)),
+          new Field(dataToBN(amount1+i)),
           new Field(0),
           new Field(0)
           ]
@@ -236,11 +236,11 @@ async function main(action: string) {
           new Field(0),
           new Field(0),
           new Field(0),
-          new Field(nonce+i),
-          new Field(accountIndex+i),
-          new Field(poolIndex+i),
-          new Field(reverse),
-          new Field(amount+i),
+          new Field(dataToBN(nonce+i)),
+          new Field(dataToBN(accountIndex+i)),
+          new Field(dataToBN(poolIndex+i)),
+          new Field(dataToBN(reverse)),
+          new Field(dataToBN(amount+i)),
           new Field(0),
           new Field(0)
           ]
@@ -260,11 +260,11 @@ async function main(action: string) {
           new Field(0),
           new Field(0),
           new Field(0),
-          new Field(nonce+i),
-          new Field(accountIndex+i),
-          new Field(tokenIndex),
-          new Field(amount+i),
-          new Field(l1address+i),
+          new Field(dataToBN(nonce+i)),
+          new Field(dataToBN(accountIndex+i)),
+          new Field(dataToBN(tokenIndex)),
+          new Field(dataToBN(amount+i)),
+          new Field(dataToBN(l1address+i)),
           new Field(0),
           new Field(0)
           ]
