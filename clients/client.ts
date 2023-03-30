@@ -6,7 +6,7 @@ import {
 } from "web3subscriber/src/client";
 import { encodeL1address } from "web3subscriber/src/addresses";
 import { ChainConfig } from "delphinus-deployment/src/types";
-import { BridgeContract } from "./contracts/bridge";
+import { ProxyContract } from "./contracts/proxy";
 import { TokenContract } from "./contracts/token";
 import { GasContract } from "./contracts/gas";
 import {
@@ -37,6 +37,13 @@ export function getChargeAddress(deviceId: string) {
   return encodedChargeAddress;
 }
 
+export function dataToBN(data: any) {
+  if (data.toHex) {
+    data = data.toHex();
+  }
+  return new BN(data, 16);
+}
+
 export class L1Client {
   readonly web3: DelphinusWeb3;
   private readonly config: ChainConfig;
@@ -55,7 +62,7 @@ export class L1Client {
   }
 
   async init() {
-    console.log(`init_bridge on %s`, this.config.chainName);
+    console.log(`init_proxy on %s`, this.config.chainName);
 
     await this.web3.connect();
     await this.switchNet();
@@ -73,10 +80,10 @@ export class L1Client {
     return this.web3.getDefaultAccount();
   }
 
-  getBridgeContract(account?: string) {
-    return new BridgeContract(
+  getProxyContract(account?: string) {
+    return new ProxyContract(
       this.web3,
-      BridgeContract.getContractAddress(this.config.deviceId),
+      ProxyContract.getContractAddress(this.config.deviceId),
       account
     );
   }

@@ -1,20 +1,20 @@
-const GasTokenInfo = require("../build/contracts/Gas.json");
-const TokenInfo = require("../build/contracts/Token.json");
-const BridgeInfo = require("../build/contracts/Bridge.json");
+const GasTokenInfo = require("../../build/contracts/Gas.json");
+const TokenInfo = require("../../build/contracts/Token.json");
+const ProxyInfo = require("../../build/contracts/Proxy.json");
 
-const DelphinusBridgeInterface = require("../build/contracts/DelphinusBridge.json");
-const ERC20Interface = require("../build/contracts/ERC20.json");
-const GasInterface = require("../build/contracts/Gas.json");
+const DelphinusProxyInterface = require("../../build/contracts/DelphinusProxy.json");
+const ERC20Interface = require("../../build/contracts/ERC20.json");
+const GasInterface = require("../../build/contracts/Gas.json");
 
 export const contractsInfo = {
     addressMap: {
         gasToken: GasTokenInfo.networks,
         testToken: TokenInfo.networks,
-        bridge: BridgeInfo.networks,
+        proxy: ProxyInfo.networks,
     },
     interfaceMap: {
-        bridge: {
-            abi: DelphinusBridgeInterface.abi,
+        proxy: {
+            abi: DelphinusProxyInterface.abi,
         },
         gas: {
             abi: GasInterface.abi,
@@ -79,7 +79,7 @@ const fs = require("fs");
 const path = require("path");
 
 fs.writeFileSync(
-    path.resolve(__dirname, "../../deployment/config", "contracts-info.json"),
+    path.resolve(__dirname, "../../../delphinus-deployment/config", "contracts-info.json"),
     JSON.stringify(contractsInfo, undefined, 2)
 );
 

@@ -28,7 +28,7 @@ module.exports = async function (deployer) {
   setkey = await SetKey.deployed();
   bridge = await Bridge.deployed();
   //zkverifier = await ZKPVerifier.deployed();
-  //dmverifier = await DummyVerifier.deployed();
+  dmverifier = await DummyVerifier.deployed();
 
   var tx = await bridge.addTransaction(deposit.address, false);
   tx = await bridge.addTransaction(withdraw.address, true);
@@ -38,5 +38,5 @@ module.exports = async function (deployer) {
   tx = await bridge.addTransaction(addpool.address, false);
   tx = await bridge.addTransaction(setkey.address, false);
   //tx = await bridge.addVerifier(zkverifier.address);
-  //tx = await bridge.addVerifier(dmverifier.address);
+  tx = await bridge.addVerifier(dmverifier.address);
 };

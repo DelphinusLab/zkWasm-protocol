@@ -172,21 +172,25 @@ contract Proxy is DelphinusProxy {
         }
     }
 
-    uint256 constant BATCH_SIZE = 10;
+    //uint256 constant BATCH_SIZE = 10;
     uint256 constant OP_SIZE = 81; // 81 bytes
 
     function perform_txs(
-        bytes calldata tx_data
-    ) public {
-        for (uint i = 0; i < BATCH_SIZE; i++) {
+        bytes calldata tx_data,
+        uint256 batch_size
+    ) public returns (uint256){
+        uint256 ret = 0; 
+        for (uint i = 0; i < batch_size; i++) {
             uint8 op_code = uint8(tx_data[i * OP_SIZE]);
             require(transactions.length > op_code, "TX index out of bound");
             if (hasSideEffiect[op_code]) {
                 Transaction transaction = _get_transaction(op_code);
                 uint256[] memory update = transaction.sideEffect(tx_data, i * OP_SIZE + 1);
+                ret = 1;
                 _update_state(update);
             }
         }
+        return ret;
     }
 
     /*
@@ -200,14 +204,14 @@ contract Proxy is DelphinusProxy {
         uint256[] calldata aux,
         uint256[][] calldata instances,
         uint8 _vid,
-        uint256 _rid
+        RidInfo calldata ridInfo
     ) public {
-        require(rid == _rid, "Verify: Unexpected Request Id");
+        require(rid == ridInfo.rid, "Verify: Unexpected Request Id");
 
         // [0]: old root, [1]: new root, [2]: sha_low, [3]: sha_high
 
         require(
-            tx_data.length == OP_SIZE * BATCH_SIZE,
+            tx_data.length == OP_SIZE * ridInfo.batch_size,
             "Verify: Insufficient delta operations"
         );
 
@@ -224,12 +228,12 @@ contract Proxy is DelphinusProxy {
 
         DelphinusVerifier verifier = _get_verifier(_vid);
         verifier.verify(proof, verify_instance, aux, instances);
-
-        perform_txs(tx_data);
+        
+        uint256 sideEffectCalled = perform_txs(tx_data, ridInfo.batch_size);
 
         uint256 new_merkle_root = instances[0][1];
         merkle_root = new_merkle_root;
-        rid = _rid + BATCH_SIZE;
-        emit Ack(_rid, 0);
+        rid = ridInfo.rid + ridInfo.batch_size;
+        emit Ack(ridInfo.rid, sideEffectCalled);
     }
 }

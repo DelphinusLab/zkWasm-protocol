@@ -15,7 +15,7 @@ const registeredTokens = contractsInfo.tokens.concat(extraTokens);
 /*
  * Types
  */
-export interface BridgeInfo {
+export interface ProxyInfo {
   chain_id: string;
   amount_token: string;
   amount_pool: string;
@@ -51,27 +51,39 @@ export interface WithDraw {
   nonce: string;
 }
 
+export interface RidInfo {
+  rid: BN;
+  batch_size: BN;
+}
+
 function hexcmp(x: string, y: string) {
   const xx = new BN(x, "hex");
   const yy = new BN(y, "hex");
   return xx.eq(yy);
 }
 
-export class BridgeContract extends DelphinusContract {
+export class ProxyContract extends DelphinusContract {
   constructor(web3: DelphinusWeb3, address: string, account?: string) {
-    super(web3, BridgeContract.getJsonInterface(), address, account);
+    super(web3, ProxyContract.getJsonInterface(), address, account);
   }
 
   static getJsonInterface(): any {
-    return contractsInfo.interfaceMap.bridge;
+    return contractsInfo.interfaceMap.proxy;
   }
 
   static getContractAddress(chainId: string) {
-    return contractsInfo.addressMap.bridge[chainId].address;
+    return contractsInfo.addressMap.proxy[chainId].address;
   }
 
-  getBridgeInfo() {
-    return this.getWeb3Contract().methods.getBridgeInfo().call();
+  static checkAddHexPrefix(hexStr: string) {
+    let s:string = hexStr;
+    if(s.substring(0,2) != "0x")
+      s = "0x" + s;
+    return s;
+  }
+
+  getProxyInfo() {
+    return this.getWeb3Contract().methods.getProxyInfo().call();
   }
 
   allTokens(): Promise<TokenInfo[]> {
@@ -82,12 +94,20 @@ export class BridgeContract extends DelphinusContract {
     return this.getWeb3Contract().methods.addToken(tokenid).send();
   }
 
-  private _verify(calldata: number[], verifydata: BN[], vid: number, rid: BN) {
+  private _verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
+    const calldataChecked:string = ProxyContract.checkAddHexPrefix(calldata);
+
     const tx = this.getWeb3Contract().methods.verify(
-      calldata,
+      calldataChecked,
       verifydata,
+      verifyInstance,
+      aux,
+      instances,
       vid,
-      rid
+      {
+        rid: rid.rid.toString(),
+        batch_size: rid.batch_size.toString()
+      },
     );
     return tx.send();
   }
@@ -98,13 +118,13 @@ export class BridgeContract extends DelphinusContract {
       .send();
   }
 
-  verify(calldata: number[], verifydata: BN[], vid: number, rid: BN) {
+  verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
     const pbinder = new PromiseBinder();
 
     return pbinder.return(async () => {
       return await pbinder.bind(
         "Verify",
-        this._verify(calldata, verifydata, vid, rid)
+        this._verify(calldata, verifydata, verifyInstance, aux, instances, vid, rid)
       );
     });
   }
@@ -218,16 +238,16 @@ export class BridgeContract extends DelphinusContract {
         });
       });
     };
-    console.log("getting bridge info");
-    let _bridgeInfo = await retryGet(
-      () => this.getBridgeInfo() as Promise<BridgeInfo>
+    console.log("getting Proxy info");
+    let _proxyInfo = await retryGet(
+      () => this.getProxyInfo() as Promise<ProxyInfo>
     );
     console.log("getting token info");
     let _tokens = await retryGet(() => this.allTokens());
     console.log("getting chain info");
     let _chainInfo = await retryGet(() => this.extractChainInfo());
     return {
-      bridgeInfo: _bridgeInfo,
+      proxyInfo: _proxyInfo,
       tokens: _tokens,
       chainInfo: _chainInfo,
     };

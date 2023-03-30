@@ -21,3 +21,8 @@ struct ProxyInfo {
     uint256 rid;
     uint256 verifierID;
 }
+
+struct RidInfo {
+    uint256 rid;
+    uint256 batch_size;
+}
