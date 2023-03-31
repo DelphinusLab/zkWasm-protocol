@@ -4,7 +4,7 @@
 3. Run `npm install` under `delphinus-deployment`
 4. Run `npm install` under `zkWasam-protocol`
 
-## How do deploy testChain
+## How to deploy testChain
 1. Deploy the contracts by running `npx truffle migrate --network ${TESTCHAIN}` under `zkWasam-protocol`
 2. If there are some changes in proxy.sol or verify.sol, need to redeploy file2, run `npx truffle migrate --f 2 --to 2 --network ${TESTCHAIN}`
 3. Run `node dist/clients/config-contracts-info.js` to generate contract-info to deployment.
