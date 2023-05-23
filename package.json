@@ -9,7 +9,7 @@
     "buffer": "^6.0.3",
     "crypto-js": "^4.1.1",
     "delphinus-curves": "git+ssh://git@github.com:DelphinusLab/delphinus-curves.git",
-    "delphinus-deployment": "file:../delphinus-deployment",
+    "zkwasm-deployment": "file:../zkWasm-deployment",
     "fs-extra": "^10.0.0",
     "mongodb": "^4.1.3",
     "node-fetch": "^2.6.6",
@@ -21,7 +21,7 @@
   "scripts": {
     "dev": "npx truffle dev",
     "build": "npx tsc",
-    "prepare": "sh install_dep.sh && npm run build",
+    "prepare": "sh scripts/install_dep.sh && npm run build",
     "test": "bash action_test.sh"
   },
   "exports": {

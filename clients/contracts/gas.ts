@@ -1,5 +1,5 @@
 import { DelphinusContract, DelphinusWeb3 } from "web3subscriber/src/client";
-import { contractsInfo } from "delphinus-deployment/config/contractsinfo";
+import { contractsInfo } from "zkwasm-deployment/config/contractsinfo";
 import BN from "bn.js";
 
 export class GasContract extends DelphinusContract {

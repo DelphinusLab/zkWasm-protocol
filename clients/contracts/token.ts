@@ -1,7 +1,7 @@
 import BN from 'bn.js';
 import { DelphinusContract, DelphinusWeb3 } from "web3subscriber/src/client";
 import { PromiseBinder } from "web3subscriber/src/pbinder";
-import { contractsInfo } from "delphinus-deployment/config/contractsinfo";
+import { contractsInfo } from "zkwasm-deployment/config/contractsinfo";
 
 export class TokenContract extends DelphinusContract {
   constructor(web3: DelphinusWeb3, address: string, account?: string) {

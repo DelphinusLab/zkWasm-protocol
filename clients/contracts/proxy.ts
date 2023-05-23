@@ -8,7 +8,7 @@ import {
   extraTokens,
   Chains,
   contractsInfo,
-} from "delphinus-deployment/config/contractsinfo";
+} from "zkwasm-deployment/config/contractsinfo";
 
 const registeredTokens = contractsInfo.tokens.concat(extraTokens);
 

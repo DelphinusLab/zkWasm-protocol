@@ -19,7 +19,6 @@
  */
 
 const Web3HttpProvider = require('web3-providers-http');
-
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 const secrets = require('delphinus-deployment/config/monitor-secrets.json');
 
@@ -42,8 +41,9 @@ module.exports = {
 
   networks: {
     goerli: { //eth testnet
-      provider: () => new HDWalletProvider(secrets.accounts.deployer.priv,
-        http_provider("https://goerli.infura.io/v3/" + secrets.infura_id_goerli) //we find ankr does not stable for deployment so have to use infura
+      provider: () => new HDWalletProvider(
+          secrets.accounts.deployer.priv,
+          http_provider("https://goerli.infura.io/v3/" + secrets.infura_id_goerli) //we find ankr does not stable for deployment so have to use infura
         //http_provider("https://eth.getblock.io/goerli/?api_key=" + secrets.getblock_key_goerli)
       ),
       network_id: 5,       // goerli's id
@@ -62,20 +62,27 @@ module.exports = {
       timeoutBlocks: 200,
       skipDryRun: true
     },
-    cantotestnet: {
-      provider: () => new HDWalletProvider(secrets.accounts.deployer.priv,
-        http_provider("https://eth.plexnode.wtf/")),
-      network_id: 740,
-      confirmations: 2,
-      timeoutBlocks: 200,
-      skipDryRun: true
+    sepolia: {
+      provider: () =>
+        new HDWalletProvider(
+          secrets,
+          http_provider("https://sepolia.infura.io/v3/" + secrets.infura_id_sepolia)
+        ),
+      network_id: "11155111",
+      gasLimit: 30000000,
+      timeoutBlocks: 4000,
+      skipDryRun: true,
     },
-    rolluxtestnet: {
-      provider: () => new HDWalletProvider(secrets.accounts.deployer.priv,
-        http_provider("https://testnet.rollux.com:2814/")),
-      network_id: 2814,
-      timeoutBlocks: 200,
-      skipDryRun: true
+    alfajores: {
+      provider: () =>
+        new HDWalletProvider(
+          secrets,
+          "https://alfajores-forno.celo-testnet.org"
+        ),
+      network_id: "44787",
+      gasLimit: 30000000,
+      timeoutBlocks: 4000,
+      skipDryRun: true,
     }
   },
 

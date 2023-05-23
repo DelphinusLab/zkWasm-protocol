@@ -1,0 +1,3 @@
+[submodule "deployment"]
+	path = deployment
+	url = git@github.com:DelphinusLab/zkWasm-protocol.git

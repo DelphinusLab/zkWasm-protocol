@@ -4,8 +4,8 @@ import hexEnc from "crypto-js/enc-hex";
 import { Field } from "delphinus-curves/src/field";
 import { withL1Client, L1Client } from "../clients/client";
 import { RidInfo } from "../clients/contracts/proxy";
-import { getConfigByChainName } from "delphinus-deployment/src/config";
-import { L1ClientRole } from "delphinus-deployment/src/types";
+import { getConfigByChainName } from "zkwasm-deployment/src/config";
+import { L1ClientRole } from "zkwasm-deployment/src/types";
 import { encodeL1address, toHexStr } from "web3subscriber/src/addresses";
 import { PromiseBinder } from "web3subscriber/src/pbinder";
 import { dataToBN } from "../clients/client";
@@ -21,7 +21,7 @@ async function mintToken(testChain: string) {
           pbinder.snapshot("Mint");
           console.log("mint token:", token.address());
           let balance = await token.balanceOf(account);
-          
+
           if(balance.cmp(new BN(100)) == -1) {
             console.log("Monitor Account's balance before mint:", balance.toString(10));
             await pbinder.bind("mint", token.mint(new BN("1000")));

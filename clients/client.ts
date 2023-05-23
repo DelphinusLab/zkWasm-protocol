@@ -5,7 +5,7 @@ import {
   Web3ProviderMode,
 } from "web3subscriber/src/client";
 import { encodeL1address } from "web3subscriber/src/addresses";
-import { ChainConfig } from "delphinus-deployment/src/types";
+import { ChainConfig } from "zkwasm-deployment/src/types";
 import { ProxyContract } from "./contracts/proxy";
 import { TokenContract } from "./contracts/token";
 import { GasContract } from "./contracts/gas";
@@ -26,7 +26,7 @@ function getDelphinusProviderFromConfig(config: ChainConfig) {
   }
 }
 
-import { contractsInfo } from "delphinus-deployment/config/contractsinfo";
+import { contractsInfo } from "zkwasm-deployment/config/contractsinfo";
 
 export function getChargeAddress(deviceId: string) {
   let chargeAddress = contractsInfo.addressMap.gasToken[deviceId].address;
