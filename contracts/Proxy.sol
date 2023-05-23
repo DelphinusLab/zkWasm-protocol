@@ -14,7 +14,7 @@ contract Proxy is DelphinusProxy {
 
     TokenInfo[] private _tokens;
     Transaction[] private transactions;
-    DelphinusVerifier[] private verifiers;
+    DelphinusVerifier private verifier;
     ProxyInfo _proxy_info;
 
     mapping(uint256 => bool) private _tmap;
@@ -23,7 +23,6 @@ contract Proxy is DelphinusProxy {
     mapping(uint256 => bool) private hasSideEffiect;
     uint256 merkle_root;
     uint256 rid;
-    uint256 verifierID;
 
     constructor(uint32 chain_id) {
         _proxy_info.chain_id = chain_id;
@@ -51,7 +50,7 @@ contract Proxy is DelphinusProxy {
                 _proxy_info.owner,
                 merkle_root,
                 rid,
-                verifierID
+                uint256(uint160(address(verifier)))
             );
     }
 
@@ -102,23 +101,14 @@ contract Proxy is DelphinusProxy {
         return cursor;
     }
 
-    function addVerifier(address vaddr) public returns (uint256) {
+    function setVerifier(address vaddr) public {
         ensure_admin();
-        uint256 cursor = verifiers.length;
-        verifierID = verifiers.length;
-        require(verifiers.length < 255, "Verifier index out of bound");
-        verifiers.push(DelphinusVerifier(vaddr));
-        return cursor;
+        verifier = DelphinusVerifier(vaddr);
     }
 
     function _get_transaction(uint8 tid) private view returns (Transaction) {
         require(transactions.length > tid, "TX index out of bound");
         return transactions[tid];
-    }
-
-    function _get_verifier(uint8 vid) private view returns (DelphinusVerifier) {
-        require(verifiers.length > vid, "Verifier index out of bound");
-        return verifiers[vid];
     }
 
     /* encode the l1 address into token_uid */
@@ -173,19 +163,19 @@ contract Proxy is DelphinusProxy {
     }
 
     //uint256 constant BATCH_SIZE = 10;
-    uint256 constant OP_SIZE = 81; // 81 bytes
+    uint256 constant OP_SIZE = 80; // 80 bytes for each transaction
 
     function perform_txs(
         bytes calldata tx_data,
         uint256 batch_size
     ) public returns (uint256){
-        uint256 ret = 0; 
+        uint256 ret = 0;
         for (uint i = 0; i < batch_size; i++) {
             uint8 op_code = uint8(tx_data[i * OP_SIZE]);
             require(transactions.length > op_code, "TX index out of bound");
             if (hasSideEffiect[op_code]) {
                 Transaction transaction = _get_transaction(op_code);
-                uint256[] memory update = transaction.sideEffect(tx_data, i * OP_SIZE + 1);
+                uint256[] memory update = transaction.sideEffect(tx_data, i * OP_SIZE);
                 ret = 1;
                 _update_state(update);
             }
@@ -203,7 +193,6 @@ contract Proxy is DelphinusProxy {
         uint256[] calldata verify_instance,
         uint256[] calldata aux,
         uint256[][] calldata instances,
-        uint8 _vid,
         RidInfo calldata ridInfo
     ) public {
         require(rid == ridInfo.rid, "Verify: Unexpected Request Id");
@@ -226,9 +215,8 @@ contract Proxy is DelphinusProxy {
             "Inconstant: Merkle root dismatch"
         );
 
-        DelphinusVerifier verifier = _get_verifier(_vid);
         verifier.verify(proof, verify_instance, aux, instances);
-        
+
         uint256 sideEffectCalled = perform_txs(tx_data, ridInfo.batch_size);
 
         uint256 new_merkle_root = instances[0][1];

@@ -19,7 +19,7 @@ struct ProxyInfo {
     address owner;
     uint256 merkle_root;
     uint256 rid;
-    uint256 verifierID;
+    uint256 verifier;
 }
 
 struct RidInfo {

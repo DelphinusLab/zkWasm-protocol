@@ -1,4 +1,4 @@
-const Bridge = artifacts.require("Proxy");
+const Proxy = artifacts.require("Proxy");
 const Withdraw = artifacts.require("Withdraw");
 const Deposit = artifacts.require("Deposit");
 const Supply = artifacts.require("Supply");
@@ -14,7 +14,7 @@ module.exports = async function (deployer) {
   console.log("netid", id);
 
   await Promise.all([
-    deployer.deploy(Bridge, id),
+    deployer.deploy(Proxy, id),
     //deployer.deploy(ZKPVerifier, id),
     deployer.deploy(DummyVerifier, id),
   ]);
@@ -26,17 +26,17 @@ module.exports = async function (deployer) {
   supply = await Supply.deployed();
   addpool = await AddPool.deployed();
   setkey = await SetKey.deployed();
-  bridge = await Bridge.deployed();
+  proxy = await Proxy.deployed();
   //zkverifier = await ZKPVerifier.deployed();
   dmverifier = await DummyVerifier.deployed();
 
-  var tx = await bridge.addTransaction(deposit.address, false);
-  tx = await bridge.addTransaction(withdraw.address, true);
-  tx = await bridge.addTransaction(swap.address, false);
-  tx = await bridge.addTransaction(supply.address, false);
-  tx = await bridge.addTransaction(retrive.address, false);
-  tx = await bridge.addTransaction(addpool.address, false);
-  tx = await bridge.addTransaction(setkey.address, false);
-  //tx = await bridge.addVerifier(zkverifier.address);
-  tx = await bridge.addVerifier(dmverifier.address);
+  var tx = await proxy.addTransaction(deposit.address, false);
+  tx = await proxy.addTransaction(withdraw.address, true);
+  tx = await proxy.addTransaction(swap.address, false);
+  tx = await proxy.addTransaction(supply.address, false);
+  tx = await proxy.addTransaction(retrive.address, false);
+  tx = await proxy.addTransaction(addpool.address, false);
+  tx = await proxy.addTransaction(setkey.address, false);
+  //tx = await proxy.addVerifier(zkverifier.address);
+  tx = await proxy.setVerifier(dmverifier.address);
 };

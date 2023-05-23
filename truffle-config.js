@@ -65,7 +65,7 @@ module.exports = {
     sepolia: {
       provider: () =>
         new HDWalletProvider(
-          secrets,
+          secrets.accounts.deployer.priv,
           http_provider("https://sepolia.infura.io/v3/" + secrets.infura_id_sepolia)
         ),
       network_id: "11155111",

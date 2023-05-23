@@ -8,11 +8,12 @@ interface DelphinusProxy {
      * @dev snark verification stub
      */
     function getProxyInfo() external view returns (ProxyInfo memory);
-    function addToken(uint256 token) external returns (uint32);
     function allTokens() external view returns (TokenInfo[] memory);
 
     function addTransaction(address txaddr, bool sideEffect) external returns (uint256);
-    function addVerifier(address vaddr) external returns (uint256);
+    function addToken(uint256 token) external returns (uint32);
+    function setVerifier(address vaddr) external;
+
     function deposit(
         address token,
         uint256 amount,
@@ -25,7 +26,6 @@ interface DelphinusProxy {
         uint256[] calldata verify_instance,
         uint256[] calldata aux,
         uint256[][] calldata target_instances,
-        uint8 _vid,
         RidInfo memory ridInfo
     ) external;
 }
