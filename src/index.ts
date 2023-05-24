@@ -2,11 +2,11 @@ import BN from "bn.js";
 import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
 
-interface Tx {
+export interface Tx {
   to_binary: () => string;
 }
 
-class TxWithdraw {
+export class TxWithdraw {
   nonce: BN;
   accountIndex: BN;
   tokenIndex: BN;
@@ -40,18 +40,16 @@ class TxWithdraw {
   }
 }
 
-class TxData {
+export class TxData {
   oldroot: BN;
   newroot: BN;
-  sha256: BN;
   transactions: Array<Tx>;
 
-  constructor(o: BN, n: BN, s:BN) {
+  constructor(o: BN, n: BN, txs: Array<Tx>) {
     this.oldroot = o;
     this.newroot = n;
-    this.sha256 = s;
-    this.transactions = []; 
-  } 
+    this.transactions = txs;
+  }
 
   get_verifier_inputs(): Array<BN> {
     let data = this.transactions.map((x) => x.to_binary()).join("");
@@ -61,9 +59,3 @@ class TxData {
     return [this.oldroot, this.newroot, sha_low, sha_high];
   }
 }
-
-export default function() {
-    return {};
-}
-
-
