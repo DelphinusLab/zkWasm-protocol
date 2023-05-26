@@ -1,10 +1,10 @@
-const GasTokenInfo = require("../../build/contracts/Gas.json");
-const TokenInfo = require("../../build/contracts/Token.json");
-const ProxyInfo = require("../../build/contracts/Proxy.json");
+const GasTokenInfo = require("../../../build/contracts/Gas.json");
+const TokenInfo = require("../../../build/contracts/Token.json");
+const ProxyInfo = require("../../../build/contracts/Proxy.json");
 
-const DelphinusProxyInterface = require("../../build/contracts/DelphinusProxy.json");
-const ERC20Interface = require("../../build/contracts/ERC20.json");
-const GasInterface = require("../../build/contracts/Gas.json");
+const DelphinusProxyInterface = require("../../../build/contracts/DelphinusProxy.json");
+const ERC20Interface = require("../../../build/contracts/ERC20.json");
+const GasInterface = require("../../../build/contracts/Gas.json");
 
 export const contractsInfo = {
     addressMap: {
@@ -79,7 +79,7 @@ const fs = require("fs");
 const path = require("path");
 
 fs.writeFileSync(
-    path.resolve(__dirname, "../../../delphinus-deployment/config", "contracts-info.json"),
+    path.resolve(__dirname, "../../../node_modules/zkwasm-deployment/config", "contracts-info.json"),
     JSON.stringify(contractsInfo, undefined, 2)
 );
 

@@ -17,5 +17,5 @@
     "sourceMap": true,
     "outDir": "./dist"
   },
-  "include": ["src","clients","tests"]
+  "include": ["src/**/*","tests"]
 }

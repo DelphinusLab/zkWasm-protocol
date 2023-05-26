@@ -2,13 +2,13 @@ import BN from "bn.js";
 import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
 import { Field } from "delphinus-curves/src/field";
-import { withL1Client, L1Client } from "../clients/client";
-import { RidInfo } from "../clients/contracts/proxy";
+import { withL1Client, L1Client } from "../src/clients/client";
+import { RidInfo } from "../src/clients/contracts/proxy";
 import { getConfigByChainName } from "zkwasm-deployment/src/config";
 import { L1ClientRole } from "zkwasm-deployment/src/types";
 import { encodeL1address, toHexStr } from "web3subscriber/src/addresses";
 import { PromiseBinder } from "web3subscriber/src/pbinder";
-import { dataToBN } from "../clients/client";
+import { dataToBN } from "../src/clients/client";
 
 async function mintToken(testChain: string) {
     let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);

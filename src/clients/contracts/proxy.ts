@@ -118,6 +118,12 @@ export class ProxyContract extends DelphinusContract {
       .send();
   }
 
+  private _setVerifier(verifierAddress: string) {
+    return this.getWeb3Contract()
+      .methods.setVerifier(verifierAddress)
+      .send();
+  }
+
   verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
     const pbinder = new PromiseBinder();
 
@@ -166,6 +172,10 @@ export class ProxyContract extends DelphinusContract {
         this._deposit(tokenContract.address(), amount, l2account)
       );
     });
+  }
+
+  async setVerifier(verifierAddress: string) {
+    await this._setVerifier(verifierAddress);
   }
 
   private async extractChainInfo() {
@@ -252,4 +262,5 @@ export class ProxyContract extends DelphinusContract {
       chainInfo: _chainInfo,
     };
   }
+    
 }
