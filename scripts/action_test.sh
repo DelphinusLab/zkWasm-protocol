@@ -12,7 +12,7 @@ fi
 read -r -p "The PROXY contract address in PROXY.json is for test purpose only and verifier is Dummy. Are you sure to proceed? [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
-    node dist/clients/config-contracts-info.js
+    node dist/src/clients/config-contracts-info.js
     node dist/tests/action_test.js addpool ${TESTCHAIN}
     node dist/tests/action_test.js deposit ${TESTCHAIN}
     node dist/tests/action_test.js retrive ${TESTCHAIN}

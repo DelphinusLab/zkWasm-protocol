@@ -11,3 +11,7 @@
 
 ## How to run test:
 1. Run `npm run test` under `zkWasam-protocol` to test actions
+
+# the `token` directory
+1. Run `node mint-rio.js ropsten <metamask address>` where `metamask address` is your MetaMask wallet address after typing 'ropsten' to mint RIO token to wallet.
+2. Run `node node mint.js bsctestnet <metamask address>` where `metamask address` is your MetaMask wallet address to mint tToken to wallet.

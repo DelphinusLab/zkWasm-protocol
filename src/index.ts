@@ -1,3 +1,23 @@
+import {
+  getChargeAddress,
+  dataToBN,
+  L1Client,
+  withL1Client
+} from "./clients/client.js";
+
+import {
+  ProxyInfo,
+  TokenInfo,
+  Deposit,
+  SwapAck,
+  WithDraw,
+  RidInfo,
+  ProxyContract
+} from "./clients/contracts/proxy.js";
+
+import { contractsInfo } from "./clients/config-contracts-info.js";
+import { GasContract } from "./clients/contracts/gas.js";
+import { TokenContract } from "./clients/contracts/token.js";
 import BN from "bn.js";
 import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
@@ -58,4 +78,24 @@ export class TxData {
     const sha_high = new BN(hvalue.slice(32, 64), "hex", "be");
     return [this.oldroot, this.newroot, sha_low, sha_high];
   }
+}
+
+export {
+  getChargeAddress,
+  dataToBN,
+  L1Client,
+  withL1Client,
+  ProxyContract,
+  contractsInfo,
+  GasContract,
+  TokenContract
+};
+
+export type {
+  ProxyInfo,
+  TokenInfo,
+  Deposit,
+  SwapAck,
+  WithDraw,
+  RidInfo
 }
