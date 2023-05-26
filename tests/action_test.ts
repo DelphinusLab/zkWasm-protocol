@@ -54,7 +54,6 @@ async function verify(
   sha_high: BN,
   testChain: string,
   action:  string,
-  vid: number = 0
 ) {
   console.log("start to send to:", l1client.getChainIdHex());
   while (true) {
@@ -71,7 +70,7 @@ async function verify(
       });
       await proxy.addToken(newToken);
       let ridInfo: RidInfo = {rid: new BN(currentRid), batch_size: new BN("10")};
-      let tx = proxy.verify(command,[new BN("0")],[new BN("0")],[new BN("0")],[[currentMerkleRoot, currentMerkleRoot, sha_low.toString(), sha_high.toString()]], vid, ridInfo);
+      let tx = proxy.verify(command,[new BN("0")],[new BN("0")],[new BN("0")],[[currentMerkleRoot, currentMerkleRoot, sha_low.toString(), sha_high.toString()]], ridInfo);
       let r = await tx.when("Verify", "transactionHash", (hash: string) => {
         console.log("Get transactionHash", hash);
         txhash = hash;

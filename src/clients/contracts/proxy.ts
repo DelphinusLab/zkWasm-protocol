@@ -94,7 +94,7 @@ export class ProxyContract extends DelphinusContract {
     return this.getWeb3Contract().methods.addToken(tokenid).send();
   }
 
-  private _verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
+  private _verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], rid: RidInfo) {
     const calldataChecked:string = ProxyContract.checkAddHexPrefix(calldata);
 
     const tx = this.getWeb3Contract().methods.verify(
@@ -103,7 +103,6 @@ export class ProxyContract extends DelphinusContract {
       verifyInstance,
       aux,
       instances,
-      vid,
       {
         rid: rid.rid.toString(),
         batch_size: rid.batch_size.toString()
@@ -124,13 +123,13 @@ export class ProxyContract extends DelphinusContract {
       .send();
   }
 
-  verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
+  verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], rid: RidInfo) {
     const pbinder = new PromiseBinder();
 
     return pbinder.return(async () => {
       return await pbinder.bind(
         "Verify",
-        this._verify(calldata, verifydata, verifyInstance, aux, instances, vid, rid)
+        this._verify(calldata, verifydata, verifyInstance, aux, instances, rid)
       );
     });
   }

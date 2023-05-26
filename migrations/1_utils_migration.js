@@ -1,4 +1,3 @@
-const Bridge = artifacts.require("Proxy");
 const Withdraw = artifacts.require("Withdraw");
 const Deposit = artifacts.require("Deposit");
 const Supply = artifacts.require("Supply");
