@@ -23,7 +23,7 @@ import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
 
 export interface Tx {
-    to_binary: (endian: BN.Endianness) => string;
+    toBinary: (endian: BN.Endianness) => string;
 }
 
 export class TxWithdraw {
@@ -43,7 +43,7 @@ export class TxWithdraw {
     this.opcode = new BN(1);
   }
 
-  to_binary(endian: BN.Endianness) {
+  toBinary(endian: BN.Endianness) {
     let bytes = [
       this.opcode.toBuffer(endian, 1),
       this.nonce.toBuffer(endian, 7),
@@ -63,24 +63,28 @@ export class TxWithdraw {
 export class TxData {
   oldroot: BN;
   newroot: BN;
+  shaLow: BN;
+  shaHigh: BN;
   transactions: Array<Tx>;
 
   constructor(o: BN, n: BN, txs: Array<Tx>) {
     this.oldroot = o;
     this.newroot = n;
     this.transactions = txs;
-  }
-
-  get_verifier_inputs(): Array<BN> {
-    let data = this.transactions.map((x) => x.to_binary("be")).join("");
+    let data = this.transactions.map((x) => x.toBinary("be")).join("");
     const hvalue = sha256(hexEnc.parse(data)).toString();
-    const sha_low = new BN(hvalue.slice(0, 32), "hex", "be");
-    const sha_high = new BN(hvalue.slice(32, 64), "hex", "be");
-    return [this.oldroot, this.newroot, sha_low, sha_high];
+    const shalow = new BN(hvalue.slice(0, 32), "hex", "be");
+    const shahigh = new BN(hvalue.slice(32, 64), "hex", "be");
+    this.shaLow = shalow;
+    this.shaHigh = shahigh;
   }
 
-  get_zkwasm_inputs(): Array<string> {
-    let data = this.transactions.map((x) => x.to_binary("be")).join("");
+  getVerifierInputs(): Array<BN> {
+    return [this.oldroot, this.newroot, this.shaLow, this.shaHigh];
+  }
+
+  getZkwasmInputs(): Array<string> {
+    let data = this.transactions.map((x) => x.toBinary("be")).join("");
     console.assert(data.length == 160);
     let u64inputs = [];
     for(var i=0; i<data.length/16; i++) {

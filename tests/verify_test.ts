@@ -48,8 +48,10 @@ async function getEvent(action: string, blockNumber: string, testChain: string){
 async function verify(
   l1client: L1Client,
   command: string,
-  sha_low: BN,
-  sha_high: BN,
+  currentMerkle: BN,
+  finalMerkle: BN,
+  shaLow: BN,
+  shaHigh: BN,
   testChain: string,
   action:  string,
 ) {
@@ -58,24 +60,28 @@ async function verify(
     let txhash = "";
     try {
       let proxy = l1client.getProxyContract();
-      let currentRid = new BN(0);
-      let currentMerkleRoot = "";
-      let newToken = new BN(0);
-      await proxy.getProxyInfo().then((Proxyinfo:any)=>{
-        currentRid = Proxyinfo.rid;
-        currentMerkleRoot = Proxyinfo.merkle_root.toString();
-        newToken = new BN(Proxyinfo.amount_token + 1);
-      });
-      await proxy.addToken(newToken);
-      let ridInfo: RidInfo = {rid: new BN(currentRid), batch_size: new BN("1")};
-      let tx = proxy.verify(command,[new BN("0")],[new BN("0")],[new BN("0")],[[currentMerkleRoot, currentMerkleRoot, sha_low.toString(), sha_high.toString()]], ridInfo);
+      let proxyInfo = await proxy.getProxyInfo();
+      console.assert(proxyInfo.merkle_root = currentMerkle);
+      let ridInfo: RidInfo = {
+        rid: new BN(proxyInfo.rid),
+        batch_size: new BN("1")
+      };
+      let tx = proxy.verify(
+        command,
+        [new BN("0")],
+        [new BN("0")],
+        [new BN("0")],
+        [[currentMerkle.toString(), finalMerkle.toString(), shaLow.toString(), shaHigh.toString()]],
+        ridInfo
+      );
       let r = await tx.when("Verify", "transactionHash", (hash: string) => {
         console.log("Get transactionHash", hash);
         txhash = hash;
       });
       console.log("done", r.blockHash);
       console.log("Send Transaction Successfully: Passed");
-      await getEvent(action, r.blockNumber, testChain);
+      let e = await getEvent(action, r.blockNumber, testChain);
+      console.log(e);
       console.log("Get AckEvent successfully: Passed");
       return r;
     } catch (e: any) {
@@ -99,7 +105,7 @@ async function verify(
   }
 }
 
-async function main(action: string) {
+async function main(currentMerkle: string, finalMerkle:string) {
     let txwithdraw = new TxWithdraw(
             new BN(0),
             new BN(0),
@@ -108,17 +114,17 @@ async function main(action: string) {
             new BN("D91A86B4D8551290655caCED21856eF6E532F2D4", 16)
     );
     let txdata = new TxData(
-            new BN(0),
-            new BN(0),
+            new BN(currentMerkle, 16),
+            new BN(finalMerkle, 16),
             [txwithdraw]
     );
-    let inputs = txdata.get_verifier_inputs();
+    let inputs = txdata.getVerifierInputs();
     let publicInputsBytes = inputs.map((x) => {
         return x.toBuffer("le", 32).toString("hex")
     }).join("");
     console.log(publicInputsBytes);
 
-    let privateInputsBytes = txdata.get_zkwasm_inputs().join("");
+    let privateInputsBytes = txdata.getZkwasmInputs().join("");
     console.log(privateInputsBytes);
 
 
@@ -126,18 +132,20 @@ async function main(action: string) {
     let config = await getConfigByChainName(L1ClientRole.Monitor, testChain)
     console.log(
         "============================== Testing Action: %s ==============================",
-        action
+        "withdraw"
     );
     await withL1Client(config, false, (l1client: L1Client) => {
         return verify(
           l1client,
-          data,
-          sha_low,
-          sha_high,
+          txwithdraw.toBinary("be"),
+          txdata.oldroot,
+          txdata.newroot,
+          txdata.shaLow,
+          txdata.shaHigh,
           config.chainName,
-          action
+          "withdraw"
         );
     });
 }
 
-main(process.argv[2]).then(v => {process.exit();})
+main(process.argv[2], process.argv[3]).then(v => {process.exit();})

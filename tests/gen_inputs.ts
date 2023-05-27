@@ -14,13 +14,13 @@ function main() {
             new BN(0),
             [txwithdraw]
     );
-    let inputs = txdata.get_verifier_inputs();
+    let inputs = txdata.getVerifierInputs();
     let publicInputsBytes = inputs.map((x) => {
         return x.toBuffer("le", 32).toString("hex")
     }).join("");
     console.log(publicInputsBytes);
 
-    let privateInputsBytes = txdata.get_zkwasm_inputs().join("");
+    let privateInputsBytes = txdata.getZkwasmInputs().join("");
     console.log(privateInputsBytes);
 }
 
