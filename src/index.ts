@@ -15,7 +15,7 @@ import {
   ProxyContract
 } from "./clients/contracts/proxy.js";
 
-import { contractsInfo } from "./clients/config-contracts-info.js";
+import { contractsInfo } from "zkwasm-deployment/config/contractsinfo";
 import { GasContract } from "./clients/contracts/gas.js";
 import { TokenContract } from "./clients/contracts/token.js";
 import BN from "bn.js";
