@@ -20,14 +20,14 @@ contract Proxy is DelphinusProxy {
     mapping(uint256 => bool) private _tmap;
     address private _owner;
 
-    mapping(uint256 => bool) private hasSideEffiect;
+    mapping(uint256 => bool) private hasSideEffect;
     uint256 merkle_root;
     uint256 rid;
 
-    constructor(uint32 chain_id) {
+    constructor(uint32 chain_id, uint256 root) {
         _proxy_info.chain_id = chain_id;
         _proxy_info.owner = msg.sender;
-        merkle_root = 0x151399c724e17408a7a43cdadba2fc000da9339c56e4d49c6cdee6c4356fbc68;
+        merkle_root = root;
         rid = 0;
     }
 
@@ -70,6 +70,27 @@ contract Proxy is DelphinusProxy {
         return _tokens;
     }
 
+    function _deposit (
+        uint128 tidx,
+        uint128 amount,
+        uint256 l2account
+    ) private {
+        uint256 tokenid = get_token_uid(tidx);
+        require (_is_local(tokenid), "token is not a local erc token");
+        address token = address(uint160(tokenid));
+        IERC20 underlying_token = IERC20(token);
+
+        uint256 balance = underlying_token.balanceOf(msg.sender);
+        require(balance >= amount, "Insufficient Balance");
+
+        uint256 allowance = underlying_token.allowance(msg.sender, address(this));
+        require(allowance >= amount, "Insufficient Allowance");
+
+        //USDT does not follow ERC20 interface so have to use the following safer method
+        TransferHelper.safeTransferFrom(address(underlying_token), msg.sender, address(this), amount);
+        emit Deposit(_l1_address(token), l2account, amount);
+    }
+
     function _withdraw(
         uint128 tidx,
         uint128 amount,
@@ -96,7 +117,7 @@ contract Proxy is DelphinusProxy {
         require(transactions.length < 255, "TX index out of bound");
         transactions.push(Transaction(txaddr));
         if (sideEffect) {
-          hasSideEffiect[cursor] = sideEffect;
+          hasSideEffect[cursor] = sideEffect;
         }
         return cursor;
     }
@@ -122,20 +143,6 @@ contract Proxy is DelphinusProxy {
         return ((l1address >> 160) == (uint256(_proxy_info.chain_id)));
     }
 
-    function deposit(
-        address token,
-        uint256 amount,
-        uint256 l2account
-    ) public {
-        IERC20 underlying_token = IERC20(token);
-        uint256 token_uid = _l1_address(token);
-        require(_tmap[token_uid] == true, "Deposit: Untracked Token");
-        uint256 balance = underlying_token.balanceOf(msg.sender);
-        require(balance >= amount, "Insufficient Balance");
-        //USDT does not follow ERC20 interface so have to use the following safer method
-        TransferHelper.safeTransferFrom(address(underlying_token), msg.sender, address(this), amount);
-        emit Deposit(_l1_address(token), l2account, amount);
-    }
 
     /*
      * @dev side effect encoded in the update function
@@ -151,6 +158,17 @@ contract Proxy is DelphinusProxy {
                     "Withdraw: Insufficient arg number"
                 );
                 _withdraw(
+                    uint128(deltas[cursor + 1]),
+                    uint128(deltas[cursor + 2]),
+                    deltas[cursor + 3]
+                );
+                cursor = cursor + 4;
+            } else if (delta_code == _DEPOSIT) {
+                require(
+                    deltas.length >= cursor + 4,
+                    "Withdraw: Insufficient arg number"
+                );
+                _deposit(
                     uint128(deltas[cursor + 1]),
                     uint128(deltas[cursor + 2]),
                     deltas[cursor + 3]
@@ -173,7 +191,7 @@ contract Proxy is DelphinusProxy {
         for (uint i = 0; i < batch_size; i++) {
             uint8 op_code = uint8(tx_data[i * OP_SIZE]);
             require(transactions.length > op_code, "TX index out of bound");
-            if (hasSideEffiect[op_code]) {
+            if (hasSideEffect[op_code]) {
                 Transaction transaction = _get_transaction(op_code);
                 uint256[] memory update = transaction.sideEffect(tx_data, i * OP_SIZE);
                 ret = 1;

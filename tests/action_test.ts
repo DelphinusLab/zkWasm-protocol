@@ -46,7 +46,7 @@ async function getEvent(action: string, blockNumber: string, testChain: string){
       }
   }
 }
-
+/*
 async function verify(
   l1client: L1Client,
   command: string,
@@ -312,3 +312,4 @@ async function main(action: string) {
 }
 
 main(process.argv[2]).then(v => {process.exit();})
+*/

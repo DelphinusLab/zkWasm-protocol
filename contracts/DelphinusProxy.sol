@@ -14,12 +14,6 @@ interface DelphinusProxy {
     function addToken(uint256 token) external returns (uint32);
     function setVerifier(address vaddr) external;
 
-    function deposit(
-        address token,
-        uint256 amount,
-        uint256 l2account
-    ) external;
-
     function verify(
         bytes calldata tx_data,
         uint256[] calldata proof,

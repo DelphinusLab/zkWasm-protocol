@@ -4,6 +4,7 @@ import { DelphinusContract, DelphinusWeb3 } from "web3subscriber/src/client";
 import { decodeL1address } from "web3subscriber/src/addresses";
 import { PromiseBinder } from "web3subscriber/src/pbinder";
 import { TokenContract } from "./token";
+import { TxDeposit, TxData } from "../../index";
 import {
   extraTokens,
   Chains,
@@ -97,6 +98,11 @@ export class ProxyContract extends DelphinusContract {
   private _verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], rid: RidInfo) {
     const calldataChecked:string = ProxyContract.checkAddHexPrefix(calldata);
 
+    console.log("preparing verify", calldataChecked);
+    console.log("preparing verify", verifydata);
+    console.log("preparing verify", verifyInstance);
+    console.log("preparing verify", instances);
+
     const tx = this.getWeb3Contract().methods.verify(
       calldataChecked,
       verifydata,
@@ -108,13 +114,8 @@ export class ProxyContract extends DelphinusContract {
         batch_size: rid.batch_size.toString()
       },
     );
+    console.log("start send");
     return tx.send();
-  }
-
-  private _deposit(tokenAddress: string, amount: BN, l2account: string) {
-    return this.getWeb3Contract()
-      .methods.deposit(tokenAddress, amount, l2account)
-      .send();
   }
 
   private _setVerifier(verifierAddress: string) {
@@ -134,13 +135,13 @@ export class ProxyContract extends DelphinusContract {
     });
   }
 
-  deposit(
+  approve_deposit (
     tokenContract: TokenContract,
-    amount: BN,
+    txdeposit: TxDeposit,
     l1account: string,
-    l2account: string
   ) {
     const pbinder = new PromiseBinder();
+    //TODO assert txdeposit is TxDeposit
 
     return pbinder.return(async () => {
       let allowance = await tokenContract.allowanceOf(
@@ -149,7 +150,7 @@ export class ProxyContract extends DelphinusContract {
       );
       console.log("Allowance is :", allowance.toString());
       pbinder.snapshot("Approve");
-      if (allowance.lt(amount)) {
+      if (allowance.lt(txdeposit.amount)) {
         if (!allowance.isZero()) {
           await pbinder.bind(
             "Approve",
@@ -164,12 +165,7 @@ export class ProxyContract extends DelphinusContract {
           )
         );
       }
-      console.log("Deposit amount:", amount.toString());
-      pbinder.snapshot("Deposit");
-      return await pbinder.bind(
-        "Deposit",
-        this._deposit(tokenContract.address(), amount, l2account)
-      );
+      console.log("Deposit Info:", txdeposit);
     });
   }
 

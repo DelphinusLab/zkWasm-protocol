@@ -26,15 +26,26 @@ export interface Tx {
     toBinary: (endian: BN.Endianness) => string;
 }
 
+export class Address {
+    address: string;
+    constructor(addr: string) {
+        // TODO check address string format
+        this.address = addr;
+    }
+    toU256Bytes() {
+        return new BN(this.address, 16, "be").toBuffer("be",32).toString("hex");
+    }
+}
+
 export class TxWithdraw {
   nonce: BN;
   accountIndex: BN;
   tokenIndex: BN;
   amount: BN;
-  l1address: BN;
   opcode: BN;
+  l1address: Address;
 
-  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address:BN) {
+  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address: Address) {
     this.nonce = nonce;
     this.accountIndex = accountIndex;
     this.tokenIndex = tokenIndex;
@@ -50,15 +61,48 @@ export class TxWithdraw {
       this.accountIndex.toBuffer(endian, 4),
       this.tokenIndex.toBuffer(endian, 4),
       this.amount.toBuffer(endian, 32),
-      this.l1address.toBuffer(endian, 32),
     ]
     .map((x) => {
         return x.toString("hex");
     })
-    .join("");
+    .join("") + this.l1address.toU256Bytes();
     return bytes;
   }
 }
+
+export class TxDeposit{
+  nonce: BN;
+  accountIndex: BN;
+  tokenIndex: BN;
+  amount: BN;
+  opcode: BN;
+  l1address: Address;
+
+  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address: Address) {
+    this.nonce = nonce;
+    this.accountIndex = accountIndex;
+    this.tokenIndex = tokenIndex;
+    this.amount = amount;
+    this.l1address = l1address;
+    this.opcode = new BN(0);
+  }
+
+  toBinary(endian: BN.Endianness) {
+    let bytes = [
+      this.opcode.toBuffer(endian, 1),
+      this.nonce.toBuffer(endian, 7),
+      this.accountIndex.toBuffer(endian, 4),
+      this.tokenIndex.toBuffer(endian, 4),
+      this.amount.toBuffer(endian, 32),
+    ]
+    .map((x) => {
+        return x.toString("hex");
+    })
+    .join("") + this.l1address.toU256Bytes();
+    return bytes;
+  }
+}
+
 
 export class TxData {
   oldroot: BN;
@@ -83,14 +127,41 @@ export class TxData {
     return [this.oldroot, this.newroot, this.shaLow, this.shaHigh];
   }
 
-  getZkwasmInputs(): Array<string> {
+  getTxData(): string {
     let data = this.transactions.map((x) => x.toBinary("be")).join("");
     console.assert(data.length == 160);
+    return data;
+    /*
     let u64inputs = [];
     for(var i=0; i<data.length/16; i++) {
         u64inputs.push(data.slice(i*16,(i+1)*16));
     }
     return u64inputs;
+    */
+  }
+
+  getZkwasmInstances(): string[] {
+    let data = this.getTxData();
+    let u64inputs = [];
+    for(var i=0; i<data.length/16; i++) {
+        u64inputs.push("0x" + data.slice(i*16,(i+1)*16));
+    }
+    return u64inputs;
+  }
+
+  verify(l1client: L1Client, proof: BN[], batchinstance: BN[], aux: BN[], rid: RidInfo) {
+    let proxy = l1client.getProxyContract();
+    console.log("wasminputs", this.getTxData());
+    console.log("verifierinputs", this.getVerifierInputs());
+    return proxy.verify(
+      this.getTxData(),
+      proof,
+      batchinstance,
+      aux,
+      [this.getVerifierInputs().map((x) => x.toString())], // BN format in dec
+      //[this.getZkwasmInstances()],
+      rid
+    )
   }
 }
 

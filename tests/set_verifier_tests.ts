@@ -2,7 +2,7 @@ import { withL1Client, L1Client } from "../src/clients/client";
 import { getConfigByChainName } from "zkwasm-deployment/src/config";
 import { L1ClientRole } from "zkwasm-deployment/src/types";
 
-// 
+//
 async function setVerifierTests(testChain: string) {
     let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);
     try {
