@@ -190,9 +190,9 @@ export async function mintToken(testChain: string) {
           console.log("mint token:", token.address());
           let balance = await token.balanceOf(account);
 
-          if(balance.cmp(new BN(10000)) == -1) {
+          if(balance.cmp(new BN("10000000000000000")) == -1) {
             console.log("Monitor Account's balance before mint:", balance.toString(10));
-            await pbinder.bind("mint", token.mint(new BN("1000000")));
+            await pbinder.bind("mint", token.mint(new BN("10000000000000000")));
             balance = await token.balanceOf(account);
             console.log("Monitor Account's balance:", balance.toString(10));
           }else{
