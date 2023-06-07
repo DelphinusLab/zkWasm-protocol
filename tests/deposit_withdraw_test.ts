@@ -4,11 +4,19 @@ import { withL1Client, L1Client } from "../src/clients/client";
 import { getConfigByChainName } from "zkwasm-deployment/src/config";
 import { L1ClientRole } from "zkwasm-deployment/src/types";
 import { test_verify } from "./test_utils";
+import { encodeL1address } from "web3subscriber/src/addresses";
 
-const initial_deposit_root: Uint8Array = new Uint8Array([166, 157, 178, 62, 35, 83, 140, 56, 9, 235, 134, 184, 20, 145, 63, 43, 245, 186, 75, 233, 43, 42, 187, 217, 104, 152, 219, 89, 125, 199, 161, 9]);
-const initial_withdraw_root: Uint8Array = new Uint8Array([146, 154, 4, 1, 65, 7, 114, 67, 209, 68, 222, 153, 65, 139, 137, 45, 124, 86, 61, 115, 142, 90, 166, 41, 22, 133, 154, 149, 141, 76, 198, 11]);
+const deposit_root: Uint8Array = new Uint8Array([166, 157, 178, 62, 35, 83, 140, 56, 9, 235, 134, 184, 20, 145, 63, 43, 245, 186, 75, 233, 43, 42, 187, 217, 104, 152, 219, 89, 125, 199, 161, 9]);
+const withdraw_root: Uint8Array = new Uint8Array([146, 154, 4, 1, 65, 7, 114, 67, 209, 68, 222, 153, 65, 139, 137, 45, 124, 86, 61, 115, 142, 90, 166, 41, 22, 133, 154, 149, 141, 76, 198, 11]);
 
 const l1account = "D91A86B4D8551290655caCED21856eF6E532F2D4";
+
+async function getCurrentRoot(l1client: L1Client) {
+    let proxy = l1client.getProxyContract();
+    let proxyInfo = await proxy.getProxyInfo();
+    let currentRoot: string = proxyInfo.merkle_root.toString();
+    return currentRoot;
+}
 
 async function main() {
 
@@ -23,12 +31,14 @@ async function main() {
             new Address("D91A86B4D8551290655caCED21856eF6E532F2D4")
     );
 
+    let deviceIdHex = parseInt(config.deviceId).toString(16);
+    let encodedAddress = encodeL1address(l1account, deviceIdHex).toString(16);
     let txwithdraw= new TxWithdraw(
             new BN(0),
             new BN(0),
             new BN(0),
             new BN(1).shln(12),
-            new Address("D91A86B4D8551290655caCED21856eF6E532F2D4")
+            new Address(encodedAddress)
     );
 
     console.log(
@@ -38,11 +48,10 @@ async function main() {
     async function test_deposit(l1client: L1Client) {
         let tokenContract = l1client.getTokenContract();
         let proxy = l1client.getProxyContract();
-        let proxyInfo = await proxy.getProxyInfo();
-        let initial_root: string = proxyInfo.merkle_root.toString();
+        let currentRoot = await getCurrentRoot(l1client);
         let txdatadeposit = new TxData(
-            new BN(initial_root),
-            new BN(initial_withdraw_root, 16, "le"),
+            new BN(currentRoot),
+            new BN(withdraw_root, 16, "le"),
             [txdeposit]
         );
 
@@ -66,12 +75,10 @@ async function main() {
     );
 
     async function test_withdraw(l1client: L1Client) {
-        let proxy = l1client.getProxyContract();
-        let proxyInfo = await proxy.getProxyInfo();
-        let withdraw_root: string = proxyInfo.merkle_root.toString();
+        let currentRoot = await getCurrentRoot(l1client);
         let txdatawithdraw = new TxData(
-            new BN(withdraw_root),
-            new BN(initial_deposit_root, 16, "le"),
+            new BN(currentRoot),
+            new BN(deposit_root, 16, "le"),
             [txwithdraw]
         );
 
