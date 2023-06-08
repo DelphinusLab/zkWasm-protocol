@@ -21,6 +21,7 @@ import { TokenContract } from "./clients/contracts/token.js";
 import BN from "bn.js";
 import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
+import { encodeL1address } from "web3subscriber/src/addresses";
 
 export interface Tx {
     toBinary: (endian: BN.Endianness) => string;
@@ -45,12 +46,12 @@ export class TxWithdraw {
   opcode: BN;
   l1address: Address;
 
-  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address: Address) {
+  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address: Address, networkId: string) {
     this.nonce = nonce;
     this.accountIndex = accountIndex;
     this.tokenIndex = tokenIndex;
     this.amount = amount;
-    this.l1address = l1address;
+    this.l1address = new Address(encodeL1address(l1address.address, parseInt(networkId).toString(16)).toString(16));
     this.opcode = new BN(1);
   }
 

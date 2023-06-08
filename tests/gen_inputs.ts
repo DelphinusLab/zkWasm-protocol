@@ -1,5 +1,7 @@
 import BN from "bn.js";
 import { TxData, Tx, TxDeposit, TxWithdraw, Address} from "../src/index";
+import { getConfigByChainName } from "zkwasm-deployment/src/config";
+import { L1ClientRole } from "zkwasm-deployment/src/types";
 
 // This is the root hash in little-endian
 const initial_root: Uint8Array = new Uint8Array([166, 157, 178, 62, 35, 83, 140, 56, 9, 235, 134, 184, 20, 145, 63, 43, 245, 186, 75, 233, 43, 42, 187, 217, 104, 152, 219, 89, 125, 199, 161, 9]);
@@ -26,7 +28,10 @@ function gen_inputs(root: Uint8Array, tx: Tx, comments: string) {
 
 }
 
-function main() {
+async function main() {
+    let testChain = process.argv[2];
+    let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);
+
     let txdeposit = new TxDeposit(
             new BN(0),
             new BN(0),
@@ -34,12 +39,14 @@ function main() {
             new BN(1).shln(12),
             new Address("D91A86B4D8551290655caCED21856eF6E532F2D4")
     );
+    let networkId = config.deviceId;
     let txwithdraw = new TxWithdraw(
             new BN(0),
             new BN(0),
             new BN(0),
             new BN(1).shln(12),
-            new Address("D91A86B4D8551290655caCED21856eF6E532F2D4")
+            new Address("D91A86B4D8551290655caCED21856eF6E532F2D4"),
+            networkId
     );
 
     gen_inputs(initial_root, txdeposit, "deposit");
