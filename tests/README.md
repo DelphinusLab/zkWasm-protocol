@@ -9,9 +9,6 @@
 2. If there are some changes in proxy.sol or verify.sol, need to redeploy file2, run `npx truffle migrate --f 2 --to 2 --network ${TESTCHAIN}`
 3. Run `node dist/clients/config-contracts-info.js` to generate contract-info to deployment.
 
-## How to test `action_test.ts` and `deposit_withdraw_test.ts`:
-1. Run `npm run test` under `zkWasm-protocol` to test actions
-
 # How to use the `token` directory
 1. Run `node mint-rio.js ropsten <metamask address>` where `metamask address` is your MetaMask wallet address after typing 'ropsten' to mint RIO token to wallet.
 2. Run `node node mint.js bsctestnet <metamask address>` where `metamask address` is your MetaMask wallet address to mint tToken to wallet.
