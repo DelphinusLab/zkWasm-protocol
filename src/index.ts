@@ -46,12 +46,12 @@ export class TxWithdraw {
   opcode: BN;
   l1address: Address;
 
-  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address: Address, networkId: string) {
+  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address: Address, networkId: number) {
     this.nonce = nonce;
     this.accountIndex = accountIndex;
     this.tokenIndex = tokenIndex;
     this.amount = amount;
-    this.l1address = new Address(encodeL1address(l1address.address, parseInt(networkId).toString(16)).toString(16));
+    this.l1address = new Address(encodeL1address(l1address.address, networkId.toString(16)).toString(16));
     this.opcode = new BN(1);
   }
 

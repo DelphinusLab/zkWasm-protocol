@@ -39,7 +39,7 @@ async function main() {
             new BN(1).shln(12),
             new Address("D91A86B4D8551290655caCED21856eF6E532F2D4")
     );
-    let networkId = config.deviceId;
+    let networkId = parseInt(config.deviceId, 10);
     let txwithdraw = new TxWithdraw(
             new BN(0),
             new BN(0),

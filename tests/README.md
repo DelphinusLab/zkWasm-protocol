@@ -9,32 +9,53 @@
 2. If there are some changes in proxy.sol or verify.sol, need to redeploy file2, run `npx truffle migrate --f 2 --to 2 --network ${TESTCHAIN}`
 3. Run `node dist/clients/config-contracts-info.js` to generate contract-info to deployment.
 
-## How to run test:
-1. Run `npm run test` under `zkWasam-protocol` to test actions
+## How to test `action_test.ts` and `deposit_withdraw_test.ts`:
+1. Run `npm run test` under `zkWasm-protocol` to test actions
 
-# the `token` directory
+# How to use the `token` directory
 1. Run `node mint-rio.js ropsten <metamask address>` where `metamask address` is your MetaMask wallet address after typing 'ropsten' to mint RIO token to wallet.
 2. Run `node node mint.js bsctestnet <metamask address>` where `metamask address` is your MetaMask wallet address to mint tToken to wallet.
 
-# How to use `deposit_withdraw_test.ts`
+# How to run `deposit_withdraw_test.ts`
 1. If it is the first time to deploy contract
 In `zkWasm-protocol`, run:
 ```
 npx tsc
-npx truffle migrate --network sepolia
+npx truffle migrate --network ${TESTCHAIN}
 node dist/src/clients/config-contracts-info.js
-node dist/tests/prepare_test.js sepolia
-node dist/tests/deposit_withdraw_test.js sepolia
+node dist/tests/prepare_test.js ${TESTCHAIN}
+node dist/tests/deposit_withdraw_test.js ${TESTCHAIN}
 ```
 
 2. If it is not the first time to deploy contract
 In `zkWasm-protocol`, run:
 ```
 npx tsc
-npx truffle migrate --f 2 --to 2 --network sepolia
+npx truffle migrate --f 2 --to 2 --network ${TESTCHAIN}
 node dist/src/clients/config-contracts-info.js
-node dist/tests/prepare_test.js sepolia
-node dist/tests/deposit_withdraw_test.js sepolia
+node dist/tests/prepare_test.js ${TESTCHAIN}
+node dist/tests/deposit_withdraw_test.js ${TESTCHAIN}
+```
+
+Running commands above will generate artifacts in `zkWasm-protocol/build` and `contracts-info.json` in `zkWasm-deployment`
+
+# How to run `gen_inputs.ts`
+1. If it is the first time to deploy contract
+In `zkWasm-protocol`, run:
+```
+npx tsc
+npx truffle migrate --network ${TESTCHAIN}
+node dist/src/clients/config-contracts-info.js
+node dist/tests/gen_inputs.js ${TESTCHAIN}
+```
+
+2. If it is not the first time to deploy contract
+In `zkWasm-protocol`, run:
+```
+npx tsc
+npx truffle migrate --f 2 --to 2 --network ${TESTCHAIN}
+node dist/src/clients/config-contracts-info.js
+node dist/tests/gen_input.js ${TESTCHAIN}
 ```
 
 Running commands above will generate artifacts in `zkWasm-protocol/build` and `contracts-info.json` in `zkWasm-deployment`

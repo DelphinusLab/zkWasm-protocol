@@ -37,7 +37,7 @@ async function main() {
             [txdeposit]
     );
 
-    let networkId = config.deviceId;
+    let networkId = parseInt(config.deviceId, 10);
     let txwithdraw= new TxWithdraw(
             new BN(0),
             new BN(0),
