@@ -15,3 +15,26 @@
 # the `token` directory
 1. Run `node mint-rio.js ropsten <metamask address>` where `metamask address` is your MetaMask wallet address after typing 'ropsten' to mint RIO token to wallet.
 2. Run `node node mint.js bsctestnet <metamask address>` where `metamask address` is your MetaMask wallet address to mint tToken to wallet.
+
+# How to use `deposit_withdraw_test.ts`
+1. If it is the first time to deploy contract
+In `zkWasm-protocol`, run:
+```
+npx tsc
+npx truffle migrate --network sepolia
+node dist/src/clients/config-contracts-info.js
+node dist/tests/prepare_test.js sepolia
+node dist/tests/deposit_withdraw_test.js sepolia
+```
+
+2. If it is not the first time to deploy contract
+In `zkWasm-protocol`, run:
+```
+npx tsc
+npx truffle migrate --f 2 --to 2 --network sepolia
+node dist/src/clients/config-contracts-info.js
+node dist/tests/prepare_test.js sepolia
+node dist/tests/deposit_withdraw_test.js sepolia
+```
+
+Running commands above will generate artifacts in `zkWasm-protocol/build` and `contracts-info.json` in `zkWasm-deployment`
