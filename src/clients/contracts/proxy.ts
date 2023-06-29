@@ -4,6 +4,7 @@ import { DelphinusContract, DelphinusWeb3 } from "web3subscriber/src/client";
 import { decodeL1address } from "web3subscriber/src/addresses";
 import { PromiseBinder } from "web3subscriber/src/pbinder";
 import { TokenContract } from "./token";
+import { TxDeposit, TxData } from "../../index";
 import {
   extraTokens,
   Chains,
@@ -94,8 +95,13 @@ export class ProxyContract extends DelphinusContract {
     return this.getWeb3Contract().methods.addToken(tokenid).send();
   }
 
-  private _verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
+  private _verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], rid: RidInfo) {
     const calldataChecked:string = ProxyContract.checkAddHexPrefix(calldata);
+
+    console.log("preparing verify", calldataChecked);
+    console.log("preparing verify", verifydata);
+    console.log("preparing verify", verifyInstance);
+    console.log("preparing verify", instances);
 
     const tx = this.getWeb3Contract().methods.verify(
       calldataChecked,
@@ -103,19 +109,13 @@ export class ProxyContract extends DelphinusContract {
       verifyInstance,
       aux,
       instances,
-      vid,
       {
         rid: rid.rid.toString(),
         batch_size: rid.batch_size.toString()
       },
     );
+    console.log("start send");
     return tx.send();
-  }
-
-  private _deposit(tokenAddress: string, amount: BN, l2account: string) {
-    return this.getWeb3Contract()
-      .methods.deposit(tokenAddress, amount, l2account)
-      .send();
   }
 
   private _setVerifier(verifierAddress: string) {
@@ -124,24 +124,24 @@ export class ProxyContract extends DelphinusContract {
       .send();
   }
 
-  verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], vid: number, rid: RidInfo) {
+  verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], rid: RidInfo) {
     const pbinder = new PromiseBinder();
 
     return pbinder.return(async () => {
       return await pbinder.bind(
         "Verify",
-        this._verify(calldata, verifydata, verifyInstance, aux, instances, vid, rid)
+        this._verify(calldata, verifydata, verifyInstance, aux, instances, rid)
       );
     });
   }
 
-  deposit(
+  approve_deposit (
     tokenContract: TokenContract,
-    amount: BN,
+    txdeposit: TxDeposit,
     l1account: string,
-    l2account: string
   ) {
     const pbinder = new PromiseBinder();
+    //TODO assert txdeposit is TxDeposit
 
     return pbinder.return(async () => {
       let allowance = await tokenContract.allowanceOf(
@@ -150,7 +150,7 @@ export class ProxyContract extends DelphinusContract {
       );
       console.log("Allowance is :", allowance.toString());
       pbinder.snapshot("Approve");
-      if (allowance.lt(amount)) {
+      if (allowance.lt(txdeposit.amount)) {
         if (!allowance.isZero()) {
           await pbinder.bind(
             "Approve",
@@ -165,12 +165,7 @@ export class ProxyContract extends DelphinusContract {
           )
         );
       }
-      console.log("Deposit amount:", amount.toString());
-      pbinder.snapshot("Deposit");
-      return await pbinder.bind(
-        "Deposit",
-        this._deposit(tokenContract.address(), amount, l2account)
-      );
+      console.log("Deposit Info:", txdeposit);
     });
   }
 

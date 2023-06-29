@@ -25,22 +25,10 @@ export const contractsInfo = {
     },
     tokens: [
       {
-        chainId: "15",
-        address:TokenInfo.networks["15"]?.address.replace("0x", ""),
-        wei:12,
+        chainId: "11155111",
+        address:TokenInfo.networks["11155111"]?.address.replace("0x", ""),
+        wei:18,
         name:"tToken"
-      },
-      {
-        chainId: "15",
-        address:GasTokenInfo.networks["15"]?.address.replace("0x", ""),
-        wei:12,
-        name:"rio"
-      },
-      {
-        chainId: "16",
-        address:TokenInfo.networks["16"]?.address.replace("0x", ""),
-        wei:12,
-        name:"sToken",
       },
       {
         chainId: "5",
