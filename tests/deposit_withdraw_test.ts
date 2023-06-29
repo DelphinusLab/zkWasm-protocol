@@ -10,6 +10,14 @@ const withdraw_root: Uint8Array = new Uint8Array([146, 154, 4, 1, 65, 7, 114, 67
 
 const l1account = "D91A86B4D8551290655caCED21856eF6E532F2D4";
 
+// use the funtion when you do not want to set hard code
+async function getCurrentRoot(l1client: L1Client) {
+    let proxy = l1client.getProxyContract();
+    let proxyInfo = await proxy.getProxyInfo();
+    let currentRoot: string = proxyInfo.merkle_root.toString();
+    return currentRoot;
+}
+
 async function main() {
 
     let testChain = process.argv[2];
@@ -29,17 +37,19 @@ async function main() {
             [txdeposit]
     );
 
+    let networkId = parseInt(config.deviceId, 10);
     let txwithdraw= new TxWithdraw(
             new BN(0),
             new BN(0),
             new BN(0),
             new BN(1).shln(12),
-            new Address("D91A86B4D8551290655caCED21856eF6E532F2D4")
+            new Address("D91A86B4D8551290655caCED21856eF6E532F2D4"),
+            networkId
     );
 
     let txdatawithdraw = new TxData(
             new BN(withdraw_root, 16, "le"),
-            new BN(0),
+            new BN(initial_root, 16, "le"),
             [txwithdraw]
     );
 
@@ -76,7 +86,7 @@ async function main() {
             l1client,
             txdatawithdraw,
             testChain,
-            "withdraw",
+            "withdraw"
         );
     });
 }

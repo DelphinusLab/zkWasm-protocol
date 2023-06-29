@@ -106,6 +106,10 @@ contract Proxy is DelphinusProxy {
 
             // transfer amount back to recipent
             IERC20 underlying_token = IERC20(token);
+
+            uint256 balance = underlying_token.balanceOf(address(this));
+            require(balance >= amount, "Insufficient balance for withdraw");
+
             //underlying_token.transfer(recipent, amount);
             TransferHelper.safeTransfer(address(underlying_token), recipent, amount);
         }
