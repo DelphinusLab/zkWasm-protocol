@@ -1,28 +1,26 @@
 import BN from "bn.js";
-import {
-  DelphinusWeb3,
-  Web3BrowsersMode,
-  Web3ProviderMode,
-} from "web3subscriber/src/client";
 import { encodeL1address } from "web3subscriber/src/addresses";
 import { ChainConfig } from "zkwasm-deployment/src/types";
 import { ProxyContract } from "./contracts/proxy";
 import { TokenContract } from "./contracts/token";
 import { GasContract } from "./contracts/gas";
 import {
-  DelphinusHDWalletProvider,
-  DelphinusHttpProvider,
-  DelphinusWsProvider,
+  DelphinusBrowserConnector,
+  DelphinusReadOnlyConnector,
+  DelphinusWalletConnector,
+  GetBaseProvider,
 } from "web3subscriber/src/provider";
 
 const L1ADDR_BITS = 160;
 
 function getDelphinusProviderFromConfig(config: ChainConfig) {
-  // FIXME: use ethers
   if (config.privateKey === "") {
-    return new DelphinusWsProvider(config.wsSource);
+    return new DelphinusReadOnlyConnector(config.wsSource);
   } else {
-    return new DelphinusHDWalletProvider(config.privateKey, config.rpcSource);
+    return new DelphinusWalletConnector(
+      config.privateKey,
+      GetBaseProvider(config.rpcSource)
+    );
   }
 }
 
@@ -44,32 +42,115 @@ export function dataToBN(data: any) {
   return new BN(data, 16);
 }
 
-export class L1Client {
-  readonly web3: DelphinusWeb3;
-  private readonly config: ChainConfig;
+export type DelphinusConnector =
+  | DelphinusBrowserConnector
+  | DelphinusReadOnlyConnector
+  | DelphinusWalletConnector;
 
-  constructor(config: ChainConfig, clientMode: boolean) {
-    if (clientMode) {
-      this.web3 = new Web3BrowsersMode();
-    } else {
-      this.web3 = new Web3ProviderMode({
-        provider: getDelphinusProviderFromConfig(config),
-        monitorAccount: config.monitorAccount,
-      });
-    }
+export type MaybePromise<T> = T | Promise<T>;
 
+// Abstract class for DelphinusClient which should be implemented by client classes
+export abstract class DelphinusClient<T extends DelphinusConnector> {
+  readonly connector: T;
+  protected readonly config: ChainConfig;
+
+  constructor(config: ChainConfig, connector: T) {
     this.config = config;
+    this.connector = connector;
+  }
+
+  abstract getProxyContract(account?: string): MaybePromise<ProxyContract>;
+  abstract getGasContract(
+    address?: string,
+    account?: string
+  ): MaybePromise<GasContract>;
+  abstract getTokenContract(
+    address?: string,
+    account?: string
+  ): MaybePromise<TokenContract>;
+
+  abstract getDefaultAccount(): MaybePromise<string> | undefined;
+}
+
+// L1 Browser Client to be used only in browser environments and typically with an injected/external wallet provider such as metamask.
+export class L1BrowserClient extends DelphinusClient<DelphinusBrowserConnector> {
+  constructor(config: ChainConfig) {
+    let connector = new DelphinusBrowserConnector();
+    super(config, connector);
+  }
+
+  async init() {
+    console.log(`init_proxy on %s`, this.config.chainName);
+    await this.switchNet();
+  }
+
+  async close() {
+    // await this.web3.close();
+  }
+
+  getChainIdHex() {
+    return "0x" + new BN(this.config.deviceId).toString(16);
+  }
+
+  async getDefaultAccount() {
+    return (await this.connector.getJsonRpcSigner()).getAddress();
+  }
+
+  async getProxyContract(): Promise<ProxyContract> {
+    return new ProxyContract(
+      ProxyContract.getContractAddress(this.config.deviceId),
+      await this.connector.getJsonRpcSigner()
+    );
+  }
+
+  async getGasContract(address?: string): Promise<GasContract> {
+    return new GasContract(
+      address || GasContract.getContractAddress(this.config.deviceId),
+      await this.connector.getJsonRpcSigner()
+    );
+  }
+
+  async getTokenContract(address?: string): Promise<TokenContract> {
+    return new TokenContract(
+      address || TokenContract.getContractAddress(this.config.deviceId),
+      await this.connector.getJsonRpcSigner()
+    );
+  }
+
+  private async switchNet() {
+    await this.connector.switchNet(this.getChainIdHex());
+  }
+}
+
+// Client to be used in server environments. It uses a private key to sign transactions.
+// If no private key is provided, it will be a read-only client.
+export class L1ServerClient extends DelphinusClient<
+  DelphinusWalletConnector | DelphinusReadOnlyConnector
+> {
+  constructor(config: ChainConfig) {
+    let connector = getDelphinusProviderFromConfig(config);
+    super(config, connector);
   }
 
   async init() {
     console.log(`init_proxy on %s`, this.config.chainName);
 
-    await this.web3.connect();
-    await this.switchNet();
+    // await this.connector.connect();
   }
 
   async close() {
-    await this.web3.close();
+    // await this.web3.close();
+  }
+
+  get signer() {
+    if (this.connector instanceof DelphinusReadOnlyConnector) {
+      return undefined;
+    }
+    return this.connector.signer;
+  }
+
+  get provider() {
+    return this.connector.provider;
   }
 
   getChainIdHex() {
@@ -77,40 +158,27 @@ export class L1Client {
   }
 
   getDefaultAccount() {
-    return this.web3.getDefaultAccount();
+    return this.signer ? this.signer.address : undefined;
   }
 
-  getProxyContract(account?: string) {
+  getProxyContract() {
     return new ProxyContract(
-      this.web3,
       ProxyContract.getContractAddress(this.config.deviceId),
-      account
+      this.signer || this.provider
     );
   }
 
-  getGasContract(address?: string, account?: string) {
+  getGasContract(address?: string) {
     return new GasContract(
-      this.web3,
       address || GasContract.getContractAddress(this.config.deviceId),
-      account
+      this.signer || this.provider
     );
   }
 
-  getTokenContract(address?: string, account?: string) {
+  getTokenContract(address?: string) {
     return new TokenContract(
-      this.web3,
       address || TokenContract.getContractAddress(this.config.deviceId),
-      account
-    );
-  }
-
-  private async switchNet() {
-    await this.web3.switchNet(
-      this.getChainIdHex(),
-      this.config.chainName,
-      this.config.rpcSource,
-      this.config.nativeCurrency,
-      this.config.blockExplorer
+      this.signer || this.provider
     );
   }
 
@@ -130,12 +198,24 @@ export class L1Client {
   }
 }
 
-export async function withL1Client<t>(
+export async function withL1ServerClient<T>(
   config: ChainConfig,
-  clientMode: boolean,
-  cb: (_: L1Client) => Promise<t>
+  cb: (_: L1ServerClient) => Promise<T>
 ) {
-  const l1Client = new L1Client(config, clientMode);
+  const l1Client = new L1ServerClient(config);
+  await l1Client.init();
+  try {
+    return await cb(l1Client);
+  } finally {
+    await l1Client.close();
+  }
+}
+
+export async function withL1BrowserClient<T>(
+  config: ChainConfig,
+  cb: (_: L1BrowserClient) => Promise<T>
+) {
+  const l1Client = new L1BrowserClient(config);
   await l1Client.init();
   try {
     return await cb(l1Client);
