@@ -2,7 +2,7 @@ import BN from "bn.js";
 import * as retry from "retry";
 import { DelphinusContract } from "web3subscriber/src/client";
 import { decodeL1address } from "web3subscriber/src/addresses";
-import { PromiseBinder } from "web3subscriber/src/pbinder";
+import { TxBinder } from "web3subscriber/src/pbinder";
 import { TokenContract } from "./token";
 import { TxDeposit, TxData } from "../../index";
 import {
@@ -138,51 +138,45 @@ export class ProxyContract extends DelphinusContract {
     instances: string[][],
     rid: RidInfo
   ) {
-    const pbinder = new PromiseBinder();
+    const pbinder = new TxBinder();
 
-    return pbinder.return(async () => {
-      return await pbinder.bind(
-        "Verify",
-        this._verify(calldata, verifydata, verifyInstance, aux, instances, rid)
-      );
-    });
+    return pbinder.bind("Verify", () =>
+      this._verify(calldata, verifydata, verifyInstance, aux, instances, rid)
+    );
   }
 
-  approve_deposit(
+  async approve_deposit(
     tokenContract: TokenContract,
     txdeposit: TxDeposit,
     l1account: string
   ) {
-    const pbinder = new PromiseBinder();
-    //TODO assert txdeposit is TxDeposit
+    const txbinder = new TxBinder();
 
-    return pbinder.return(async () => {
-      let allowance = await tokenContract.allowanceOf(
-        l1account,
-        await this.getEthersContract().getAddress()
-      );
-      console.log("Allowance is :", allowance.toString());
-      pbinder.snapshot("Approve");
-      if (allowance.lt(txdeposit.amount)) {
-        if (!allowance.isZero()) {
-          await pbinder.bind(
-            "Approve",
-            tokenContract.approve(
-              await this.getEthersContract().getAddress(),
-              BigInt(0)
-            )
-          );
-        }
-        await pbinder.bind(
-          "Approve",
+    // Check allowance
+
+    const allowance = await tokenContract.allowanceOf(
+      l1account,
+      await this.getEthersContract().getAddress()
+    );
+    console.log("Allowance is :", allowance.toString());
+
+    if (allowance.lt(txdeposit.amount)) {
+      if (!allowance.isZero()) {
+        await txbinder.execute("Approve", async () =>
           tokenContract.approve(
             await this.getEthersContract().getAddress(),
-            BigInt(2) ** BigInt(256) - BigInt(1)
+            BigInt(0)
           )
         );
       }
-      console.log("Deposit Info:", txdeposit);
-    });
+      await txbinder.execute("Approve", async () =>
+        tokenContract.approve(
+          await this.getEthersContract().getAddress(),
+          BigInt(2) ** BigInt(256) - BigInt(1)
+        )
+      );
+    }
+    // TODO: Deposit? not in original implementation
   }
 
   async setVerifier(verifierAddress: string) {

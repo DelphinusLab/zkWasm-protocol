@@ -13,7 +13,7 @@ import {
 
 const L1ADDR_BITS = 160;
 
-function getDelphinusProviderFromConfig(config: ChainConfig) {
+function getDelphinusConnectorFromConfig(config: ChainConfig) {
   if (config.privateKey === "") {
     return new DelphinusReadOnlyConnector(config.wsSource);
   } else {
@@ -128,7 +128,7 @@ export class L1ServerClient extends DelphinusClient<
   DelphinusWalletConnector | DelphinusReadOnlyConnector
 > {
   constructor(config: ChainConfig) {
-    let connector = getDelphinusProviderFromConfig(config);
+    let connector = getDelphinusConnectorFromConfig(config);
     super(config, connector);
   }
 
