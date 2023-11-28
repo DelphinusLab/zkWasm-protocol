@@ -1,6 +1,6 @@
 import { withL1ServerClient, L1ServerClient } from "../../src/clients/client";
 import { getConfigByChainName } from "zkwasm-deployment/src/config";
-import { TxBinder } from "web3subscriber/src/pbinder";
+import { TxBinder } from "web3subscriber/src/txbinder";
 import { L1ClientRole } from "zkwasm-deployment/src/types";
 
 async function main(configName: string, targetAccount: string) {

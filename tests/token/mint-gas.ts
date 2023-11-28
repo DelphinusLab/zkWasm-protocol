@@ -1,6 +1,6 @@
 import { withL1ServerClient, L1ServerClient } from "../../src/clients/client";
 import { getConfigByChainName } from "zkwasm-deployment/src/config";
-import { TxBinder } from "web3subscriber/src/pbinder";
+import { TxBinder } from "web3subscriber/src/txbinder";
 import { L1ClientRole } from "zkwasm-deployment/src/types";
 
 async function main(configName: string, targetAccount: string) {
@@ -11,9 +11,11 @@ async function main(configName: string, targetAccount: string) {
     let token = l1client.getGasContract();
     let txbinder = new TxBinder();
 
-    txbinder.when("mint", "transactionHash", (tx) => console.log(tx?.hash));
+    txbinder.when("mint", "transactionHash", (tx) =>
+      console.log("transactionHash: ", tx?.hash)
+    );
     txbinder.when("mint", "transactionReceipt", (receipt) =>
-      console.log(receipt)
+      console.log("receipt", receipt)
     );
 
     await txbinder.execute("mint", () => {

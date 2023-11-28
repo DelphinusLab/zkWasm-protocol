@@ -2,9 +2,9 @@ import BN from "bn.js";
 import * as retry from "retry";
 import { DelphinusContract } from "web3subscriber/src/client";
 import { decodeL1address } from "web3subscriber/src/addresses";
-import { TxBinder } from "web3subscriber/src/pbinder";
+import { TxBinder } from "web3subscriber/src/txbinder";
 import { TokenContract } from "./token";
-import { TxDeposit, TxData } from "../../index";
+import { TxDeposit } from "../../index";
 import {
   extraTokens,
   Chains,

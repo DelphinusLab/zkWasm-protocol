@@ -5,7 +5,7 @@ import { RidInfo } from "../src/clients/contracts/proxy";
 import { getConfigByChainName } from "zkwasm-deployment/src/config";
 import { L1ClientRole } from "zkwasm-deployment/src/types";
 import { encodeL1address, toHexStr } from "web3subscriber/src/addresses";
-import { TxBinder } from "web3subscriber/src/pbinder";
+import { TxBinder } from "web3subscriber/src/txbinder";
 import {
   DelphinusReadOnlyConnector,
   GetBaseProvider,
