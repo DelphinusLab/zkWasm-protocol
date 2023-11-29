@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@openzeppelin/contracts": "latest",
+    "@truffle/hdwallet-provider": "^2.1.15",
     "bn.js": "^5.2.0",
     "buffer": "^6.0.3",
     "crypto-js": "^4.1.1",
@@ -14,6 +15,7 @@
     "process": "^0.11.10",
     "truffle": "^5.5.19",
     "web3": "^4.2.2",
+    "web3-providers-http": "^4.1.0",
     "web3subscriber": "git+ssh://git@github.com:DelphinusLab/delphinus-web3subscriber.git#feature/ethers",
     "zkwasm-deployment": "file:../zkWasm-deployment"
   },
@@ -28,6 +30,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "@types/bn.js": "^5.1.0",
     "@types/crypto-js": "^4.0.2",
     "@types/fs-extra": "^9.0.12",
@@ -36,6 +40,7 @@
     "@types/node": "^18.15.5",
     "@types/retry": "^0.12.2",
     "@types/sha256": "^0.2.0",
+    "ethers": "^6.9.0",
     "hardhat": "^2.19.1",
     "jest": "26.6.0",
     "retry": "^0.13.1",

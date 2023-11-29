@@ -5,7 +5,7 @@ import { contractsInfo } from "zkwasm-deployment/config/contractsinfo";
 
 export class TokenContract extends DelphinusContract {
   constructor(address: string, signerOrProvider: Signer | Provider) {
-    super(address, TokenContract.getJsonInterface(), signerOrProvider);
+    super(address, TokenContract.getJsonInterface().abi, signerOrProvider);
   }
 
   static getJsonInterface(): any {

@@ -4,7 +4,7 @@ import { Signer, Provider } from "ethers";
 
 export class GasContract extends DelphinusContract {
   constructor(address: string, signerOrProvider: Signer | Provider) {
-    super(address, GasContract.getJsonInterface(), signerOrProvider);
+    super(address, GasContract.getJsonInterface().abi, signerOrProvider);
   }
 
   static getJsonInterface(): any {
@@ -20,7 +20,7 @@ export class GasContract extends DelphinusContract {
   }
 
   balanceOf(account: string) {
-    return this.getEthersContract().balanceOf.call(account);
+    return this.getEthersContract().balanceOf.staticCall(account);
   }
 
   mint(amount: BigInt) {

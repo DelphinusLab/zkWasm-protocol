@@ -5,9 +5,11 @@ import { L1ClientRole } from "zkwasm-deployment/src/types";
 
 async function main(configName: string, targetAccount: string) {
   let config = await getConfigByChainName(L1ClientRole.Monitor, configName);
+  console.log("config: ", config);
   let account = config.monitorAccount;
 
   await withL1ServerClient(config, async (l1client: L1ServerClient) => {
+    console.log("account: ", account);
     let token = l1client.getGasContract();
     let txbinder = new TxBinder();
 

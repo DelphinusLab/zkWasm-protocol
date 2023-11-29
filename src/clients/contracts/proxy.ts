@@ -67,7 +67,7 @@ function hexcmp(x: string, y: string) {
 
 export class ProxyContract extends DelphinusContract {
   constructor(address: string, signerOrProvider: Signer | Provider) {
-    super(address, ProxyContract.getJsonInterface(), signerOrProvider);
+    super(address, ProxyContract.getJsonInterface().abi, signerOrProvider);
   }
 
   static getJsonInterface(): any {
