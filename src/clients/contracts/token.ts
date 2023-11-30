@@ -21,20 +21,22 @@ export class TokenContract extends DelphinusContract {
   }
 
   async balanceOf(account: string): Promise<BN> {
-    let amount = await this.getEthersContract().balanceOf(account);
+    let amount = await this.getEthersContract().balanceOf.staticCall(account);
+    console.log("balanceOf", amount);
     return new BN(amount, 10);
   }
 
-  async allowanceOf(account: string, spender: string): Promise<BN> {
-    let amount = await this.getEthersContract().allowance.call(
+  async allowanceOf(account: string, spender: string): Promise<bigint> {
+    let amount = (await this.getEthersContract().allowance(
       account,
       spender
-    );
-    return new BN(amount, 10);
+    )) as bigint;
+    console.log("allowanceOf", amount);
+    return amount;
   }
 
   mint(amount: BigInt) {
-    return this.getEthersContract().mint.send(amount);
+    return this.getEthersContract().mint(amount);
   }
 
   transfer(address: string, amount: BigInt) {

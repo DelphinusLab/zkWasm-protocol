@@ -22,6 +22,9 @@ async function main(configName: string, targetAccount: string) {
 
     console.log("sender: balance after mint", balance);
 
+    let allowance = await token.allowanceOf(account, targetAccount);
+    console.log("allowance", allowance);
+
     if (targetAccount) {
       await txbinder.execute("transfer", () => {
         return token.transfer(targetAccount, BigInt("10000000000000000000"));

@@ -14,7 +14,7 @@ const withdraw_root: Uint8Array = new Uint8Array([
   61, 115, 142, 90, 166, 41, 22, 133, 154, 149, 141, 76, 198, 11,
 ]);
 
-const l1account = "D91A86B4D8551290655caCED21856eF6E532F2D4";
+const l1account = "0xD91A86B4D8551290655caCED21856eF6E532F2D4";
 
 // use the funtion when you do not want to set hard code
 async function getCurrentRoot(l1client: L1ServerClient) {
@@ -29,10 +29,10 @@ async function main() {
   let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);
 
   let txdeposit = new TxDeposit(
-    new BN(0),
-    new BN(0),
-    new BN(0),
-    new BN(1).shln(12),
+    BigInt(0),
+    BigInt(0),
+    BigInt(0),
+    BigInt(1) << BigInt(12), // BN(1).shln(12)
     new Address("D91A86B4D8551290655caCED21856eF6E532F2D4")
   );
 
@@ -44,10 +44,10 @@ async function main() {
 
   let networkId = parseInt(config.deviceId, 10);
   let txwithdraw = new TxWithdraw(
-    new BN(0),
-    new BN(0),
-    new BN(0),
-    new BN(1).shln(12),
+    BigInt(0),
+    BigInt(0),
+    BigInt(0),
+    BigInt(1) << BigInt(12), // BN(1).shln(12)
     new Address("D91A86B4D8551290655caCED21856eF6E532F2D4"),
     networkId
   );
@@ -65,19 +65,20 @@ async function main() {
   async function test_deposit(l1client: L1ServerClient) {
     let tokenContract = l1client.getTokenContract();
     let proxy = l1client.getProxyContract();
+
     await proxy.approve_deposit(tokenContract, txdeposit, l1account);
     return test_verify(l1client, txdatadeposit, testChain, "deposit");
   }
 
-  await withL1ServerClient(config, (l1client: L1ServerClient) => {
-    return test_deposit(l1client);
+  await withL1ServerClient(config, async (l1client: L1ServerClient) => {
+    return await test_deposit(l1client);
   });
 
   console.log(
     "--------------------------- Testing Action: Withdraw ---------------------------"
   );
 
-  await withL1ServerClient(config, (l1client: L1ServerClient) => {
+  await withL1ServerClient(config, async (l1client: L1ServerClient) => {
     return test_verify(l1client, txdatawithdraw, testChain, "withdraw");
   });
 }

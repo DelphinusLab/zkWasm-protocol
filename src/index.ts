@@ -42,18 +42,18 @@ export class Address {
 }
 
 export class TxWithdraw {
-  nonce: BN;
-  accountIndex: BN;
-  tokenIndex: BN;
-  amount: BN;
-  opcode: BN;
+  nonce: bigint;
+  accountIndex: bigint;
+  tokenIndex: bigint;
+  amount: bigint;
+  opcode: bigint;
   l1address: Address;
 
   constructor(
-    nonce: BN,
-    accountIndex: BN,
-    tokenIndex: BN,
-    amount: BN,
+    nonce: bigint,
+    accountIndex: bigint,
+    tokenIndex: bigint,
+    amount: bigint,
     l1address: Address,
     networkId: number
   ) {
@@ -64,39 +64,59 @@ export class TxWithdraw {
     this.l1address = new Address(
       encodeL1address(l1address.address, networkId.toString(16)).toString(16)
     );
-    this.opcode = new BN(1);
+    this.opcode = BigInt(1);
   }
 
-  toBinary(endian: BN.Endianness) {
+  // Helper function to convert BigInt to a Buffer
+  private toBuffer(
+    bigIntValue: bigint,
+    size: number,
+    endian: "le" | "be" = "be" // Default to big-endian
+  ): Buffer {
+    const hex = bigIntValue.toString(16).padStart(size * 2, "0");
+    let buffer = Buffer.from(hex, "hex");
+
+    if (endian === "le") {
+      // Manually reverse the buffer for little-endian
+      for (let i = 0; i < buffer.length / 2; i++) {
+        const temp = buffer[i];
+        buffer[i] = buffer[buffer.length - 1 - i];
+        buffer[buffer.length - 1 - i] = temp;
+      }
+    }
+
+    return buffer;
+  }
+
+  public toBinary(endian: BN.Endianness): string {
     let bytes =
       [
-        this.opcode.toBuffer(endian, 1),
-        this.nonce.toBuffer(endian, 7),
-        this.accountIndex.toBuffer(endian, 4),
-        this.tokenIndex.toBuffer(endian, 4),
-        this.amount.toBuffer(endian, 32),
+        this.toBuffer(this.opcode, 1, endian),
+        this.toBuffer(this.nonce, 7, endian),
+        this.toBuffer(this.accountIndex, 4, endian),
+        this.toBuffer(this.tokenIndex, 4, endian),
+        this.toBuffer(this.amount, 32, endian),
       ]
-        .map((x) => {
-          return x.toString("hex");
-        })
+        .map((buffer) => buffer.toString("hex"))
         .join("") + this.l1address.toU256Bytes();
+
     return bytes;
   }
 }
 
 export class TxDeposit {
-  nonce: BN;
-  accountIndex: BN;
-  tokenIndex: BN;
-  amount: BN;
-  opcode: BN;
+  nonce: bigint;
+  accountIndex: bigint;
+  tokenIndex: bigint;
+  amount: bigint;
+  opcode: bigint;
   l1address: Address;
 
   constructor(
-    nonce: BN,
-    accountIndex: BN,
-    tokenIndex: BN,
-    amount: BN,
+    nonce: bigint,
+    accountIndex: bigint,
+    tokenIndex: bigint,
+    amount: bigint,
     l1address: Address
   ) {
     this.nonce = nonce;
@@ -104,22 +124,42 @@ export class TxDeposit {
     this.tokenIndex = tokenIndex;
     this.amount = amount;
     this.l1address = l1address;
-    this.opcode = new BN(0);
+    this.opcode = BigInt(0);
   }
 
-  toBinary(endian: BN.Endianness) {
+  // Helper function to convert BigInt to a Buffer
+  private toBuffer(
+    bigIntValue: bigint,
+    size: number,
+    endian: "le" | "be" = "be" // Default to big-endian
+  ): Buffer {
+    const hex = bigIntValue.toString(16).padStart(size * 2, "0");
+    let buffer = Buffer.from(hex, "hex");
+
+    if (endian === "le") {
+      // Manually reverse the buffer for little-endian
+      for (let i = 0; i < buffer.length / 2; i++) {
+        const temp = buffer[i];
+        buffer[i] = buffer[buffer.length - 1 - i];
+        buffer[buffer.length - 1 - i] = temp;
+      }
+    }
+
+    return buffer;
+  }
+
+  public toBinary(endian: BN.Endianness): string {
     let bytes =
       [
-        this.opcode.toBuffer(endian, 1),
-        this.nonce.toBuffer(endian, 7),
-        this.accountIndex.toBuffer(endian, 4),
-        this.tokenIndex.toBuffer(endian, 4),
-        this.amount.toBuffer(endian, 32),
+        this.toBuffer(this.opcode, 1, endian),
+        this.toBuffer(this.nonce, 7, endian),
+        this.toBuffer(this.accountIndex, 4, endian),
+        this.toBuffer(this.tokenIndex, 4, endian),
+        this.toBuffer(this.amount, 32, endian),
       ]
-        .map((x) => {
-          return x.toString("hex");
-        })
+        .map((buffer) => buffer.toString("hex"))
         .join("") + this.l1address.toU256Bytes();
+
     return bytes;
   }
 }
@@ -184,7 +224,7 @@ export class TxData {
       proof,
       batchinstance,
       aux,
-      [this.getVerifierInputs().map((x) => x.toString())], // BN format in dec
+      [this.getVerifierInputs().map((x) => BigInt(x.toString()))], // BN format in dec
       //[this.getZkwasmInstances()],
       rid
     );

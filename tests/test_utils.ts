@@ -10,6 +10,7 @@ import {
   DelphinusReadOnlyConnector,
   GetBaseProvider,
 } from "web3subscriber/src/provider";
+import { EventLog } from "ethers";
 /*
 import { RidInfo } from "../src/clients/contracts/proxy";
 */
@@ -19,46 +20,53 @@ async function getEvent(
   blockNumber: number,
   testChain: string
 ) {
+  console.log("start to get event ...");
   let config = await getConfigByChainName(L1ClientRole.Monitor, testChain);
   let readOnlyProvider = new DelphinusReadOnlyConnector(config.rpcSource);
 
   let ProxyJSON = require("../../build/contracts/Proxy.json");
   let contract = readOnlyProvider.getContractWithoutSigner(
     ProxyJSON.networks[config.deviceId].address,
-    ProxyJSON
+    ProxyJSON.abi
   );
-  // TODO: dont use parseint
 
-  let pastEvents = await contract.getPastEventsFrom(blockNumber);
+  let pastEvents = (await contract.getPastEventsFrom(
+    blockNumber
+  )) as EventLog[];
+  console.log("pastEvents", pastEvents);
   for (let r of pastEvents) {
     console.log(
       "--------------------- Get L1 Event: %s ---------------------",
       r.transactionHash
     );
-    // TODO: Fix event information
+
     console.log("blockNumber:", r.blockNumber);
     console.log("blockHash:", r.blockHash);
     console.log("transactionHash:", r.transactionHash);
-    // TODO: Fix event information
-    // if (r.returnValues.l2account == "1") {
-    //   if (action != "withdraw") {
-    //     console.log(
-    //       "SideEffect Check Failed: Action" +
-    //         action +
-    //         "should not call SideEffect!"
-    //     );
-    //   } else {
-    //     console.log("SideEffect Check: Passed");
-    //   }
-    // } else {
-    //   if (action == "withdraw") {
-    //     console.log(
-    //       "SideEffect Check Failed: Action" + action + "should call SideEffect!"
-    //     );
-    //   } else {
-    //     console.log("SideEffect Check: Passed");
-    //   }
-    // }
+
+    console.log("eventName:", r.eventName);
+    console.log("args:", r.args.l2account);
+
+    // Can index by event arg name
+    if (r.args.l2account === BigInt(1)) {
+      if (action != "withdraw") {
+        console.log(
+          "SideEffect Check Failed: Action" +
+            action +
+            "should not call SideEffect!"
+        );
+      } else {
+        console.log("SideEffect Check: Passed");
+      }
+    } else {
+      if (action == "withdraw") {
+        console.log(
+          "SideEffect Check Failed: Action" + action + "should call SideEffect!"
+        );
+      } else {
+        console.log("SideEffect Check: Passed");
+      }
+    }
   }
 }
 
@@ -71,53 +79,54 @@ export async function test_verify(
 ) {
   console.log("testing verify ...");
   console.log("start to send to:", l1client.getChainIdHex());
-  while (true) {
-    let txhash = "";
-    try {
-      let proxy = l1client.getProxyContract();
-      let proxyInfo = await proxy.getProxyInfo();
-      console.log("onchain merkle_root", proxyInfo.merkle_root.toString());
-      console.assert(proxyInfo.merkle_root == txdata.oldroot);
-      let ridInfo: RidInfo = {
-        rid: new BN(proxyInfo.rid),
-        batch_size: new BN("1"),
-      };
-      let tx = txdata.verify(
-        l1client,
-        [BigInt(0)], // proof
-        [BigInt(0)], // batchinstance
-        [BigInt(0)], // aux
-        ridInfo
-      );
-      tx.when("Verify", "transactionHash", (txResponse) => {
-        console.log("Get transactionHash", txResponse);
-        txhash = txResponse?.hash!;
-      });
+  // Run once
+  let txhash = "";
+  try {
+    let proxy = l1client.getProxyContract();
+    let proxyInfo = await proxy.getProxyInfo();
+    console.log("proxyInfo", proxyInfo);
+    console.log("onchain merkle_root", proxyInfo.merkle_root.toString());
+    console.assert(proxyInfo.merkle_root == txdata.oldroot);
+    let ridInfo: RidInfo = {
+      rid: BigInt(proxyInfo.rid),
+      batch_size: BigInt(1),
+    };
+    let tx = txdata.verify(
+      l1client,
+      [BigInt(0)], // proof
+      [BigInt(0)], // batchinstance
+      [BigInt(0)], // aux
+      ridInfo
+    );
+    tx.when("Verify", "transactionHash", (txResponse) => {
+      console.log("Get transactionHash", txResponse);
+      txhash = txResponse?.hash!;
+    });
 
-      tx.when("Verify", "transactionReceipt", async (receipt) => {
-        if (!receipt) return;
-        console.log("done", receipt.blockHash);
-        console.log("Send Transaction Successfully: Passed");
-        let e = await getEvent(action, receipt.blockNumber, testChain);
-        console.log(e);
-        console.log("Get AckEvent successfully: Passed");
-      });
-      await tx.execute("Verify");
-    } catch (e: any) {
-      if (txhash !== "") {
-        console.log("exception with transactionHash ready", " will retry ...");
-        throw e;
+    tx.when("Verify", "transactionReceipt", async (receipt) => {
+      if (!receipt) return;
+      // This might get run in parallel as the execute() does not wait for the callbacks
+      console.log("done", receipt.blockHash);
+      console.log("Send Transaction Successfully: Passed");
+      let e = await getEvent(action, receipt.blockNumber, testChain);
+      console.log(e);
+      console.log("Get AckEvent successfully: Passed");
+    });
+    await tx.execute("Verify");
+  } catch (e: any) {
+    if (txhash !== "") {
+      console.log("exception with transactionHash ready", " will retry ...");
+      throw e;
+    } else {
+      if (e.message == "ESOCKETTIMEDOUT") {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      } else if (e.message == "nonce too low") {
+        console.log("failed on:", l1client.getChainIdHex(), e.message); // not sure
+        return;
       } else {
-        if (e.message == "ESOCKETTIMEDOUT") {
-          await new Promise((resolve) => setTimeout(resolve, 5000));
-        } else if (e.message == "nonce too low") {
-          console.log("failed on:", l1client.getChainIdHex(), e.message); // not sure
-          return;
-        } else {
-          console.log("Unhandled exception during verify");
-          console.log(e);
-          throw e;
-        }
+        console.log("Unhandled exception during verify");
+        console.log(e);
+        throw e;
       }
     }
   }
@@ -246,7 +255,7 @@ export async function addToken(testChain: string) {
       if (checkExistToken == 0) {
         console.log(`Adding test token uid: ${tokenUid.toString(16)}`);
 
-        let tx = await proxy.addToken(BigInt(tokenUid.toString(16)));
+        let tx = await proxy.addToken(BigInt("0x" + tokenUid.toString(16)));
         console.log("Token Index is:", tokenIndex);
       }
     });

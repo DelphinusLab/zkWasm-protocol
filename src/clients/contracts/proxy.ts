@@ -55,8 +55,8 @@ export interface WithDraw {
 }
 
 export interface RidInfo {
-  rid: BN;
-  batch_size: BN;
+  rid: bigint;
+  batch_size: bigint;
 }
 
 function hexcmp(x: string, y: string) {
@@ -101,7 +101,7 @@ export class ProxyContract extends DelphinusContract {
     verifydata: BigInt[],
     verifyInstance: BigInt[],
     aux: BigInt[],
-    instances: string[][],
+    instances: BigInt[][],
     rid: RidInfo
   ) {
     const calldataChecked: string = ProxyContract.checkAddHexPrefix(calldata);
@@ -135,7 +135,7 @@ export class ProxyContract extends DelphinusContract {
     verifydata: BigInt[],
     verifyInstance: BigInt[],
     aux: BigInt[],
-    instances: string[][],
+    instances: BigInt[][],
     rid: RidInfo
   ) {
     const pbinder = new TxBinder();
@@ -159,9 +159,10 @@ export class ProxyContract extends DelphinusContract {
       await this.getEthersContract().getAddress()
     );
     console.log("Allowance is :", allowance.toString());
-
-    if (allowance.lt(txdeposit.amount)) {
-      if (!allowance.isZero()) {
+    // check if allowance is less than deposit amount
+    if (allowance < txdeposit.amount) {
+      if (!(allowance === BigInt(0))) {
+        // Reset allowance to 0
         await txbinder.execute("Approve", async () =>
           tokenContract.approve(
             await this.getEthersContract().getAddress(),
@@ -169,6 +170,7 @@ export class ProxyContract extends DelphinusContract {
           )
         );
       }
+      // Set allowance to max
       await txbinder.execute("Approve", async () =>
         tokenContract.approve(
           await this.getEthersContract().getAddress(),
@@ -176,6 +178,7 @@ export class ProxyContract extends DelphinusContract {
         )
       );
     }
+    console.log("Approval OK, allowance is :", allowance.toString());
     // TODO: Deposit? not in original implementation
   }
 
