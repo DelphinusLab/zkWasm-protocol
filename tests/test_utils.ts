@@ -45,7 +45,7 @@ async function getEvent(
     console.log("transactionHash:", r.transactionHash);
 
     console.log("eventName:", r.eventName);
-    console.log("args:", r.args.l2account);
+    console.log("args:", r.args);
 
     // Can index by event arg name
     if (r.args.l2account === BigInt(1)) {
