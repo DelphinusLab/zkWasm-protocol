@@ -103,16 +103,14 @@ export async function test_verify(
       txhash = txResponse?.hash!;
     });
 
-    tx.when("Verify", "transactionReceipt", async (receipt) => {
-      if (!receipt) return;
-      // This might get run in parallel as the execute() does not wait for the callbacks
-      console.log("done", receipt.blockHash);
-      console.log("Send Transaction Successfully: Passed");
-      let e = await getEvent(action, receipt.blockNumber, testChain);
-      console.log(e);
-      console.log("Get AckEvent successfully: Passed");
-    });
-    await tx.execute("Verify");
+    let receipt = await tx.execute("Verify");
+    console.log("receipt", receipt);
+    if (!receipt) return;
+    console.log("done", receipt.blockHash);
+    console.log("Send Transaction Successfully: Passed");
+    let e = await getEvent(action, receipt.blockNumber, testChain);
+    console.log(e);
+    console.log("Get AckEvent successfully: Passed");
   } catch (e: any) {
     if (txhash !== "") {
       console.log("exception with transactionHash ready", " will retry ...");
