@@ -33,7 +33,7 @@ async function getEvent(
   let pastEvents = (await contract.getPastEventsFrom(
     blockNumber
   )) as EventLog[];
-  console.log("pastEvents", pastEvents);
+
   for (let r of pastEvents) {
     console.log(
       "--------------------- Get L1 Event: %s ---------------------",
@@ -49,19 +49,22 @@ async function getEvent(
 
     // Can index by event arg name
     if (r.args.l2account === BigInt(1)) {
-      if (action != "withdraw") {
-        console.log(
-          "SideEffect Check Failed: Action" +
-            action +
-            "should not call SideEffect!"
-        );
-      } else {
+      // Check side effect if deposit or withdraw action. Both should call SideEffect
+      if (action === "deposit" || action === "withdraw") {
         console.log("SideEffect Check: Passed");
+      } else {
+        console.log(
+          "SideEffect Check Failed: Action " +
+            action +
+            " should call SideEffect!"
+        );
       }
     } else {
-      if (action == "withdraw") {
+      if (action == "withdraw" || action == "deposit") {
         console.log(
-          "SideEffect Check Failed: Action" + action + "should call SideEffect!"
+          "SideEffect Check Failed: Action " +
+            action +
+            " should call SideEffect!"
         );
       } else {
         console.log("SideEffect Check: Passed");
