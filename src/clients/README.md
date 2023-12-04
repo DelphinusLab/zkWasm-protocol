@@ -87,43 +87,43 @@ main(process.argv[2], process.argv[3]);
 ### L1 Browser Client
 
 ```typescript
-import { withL1BrowserClient, L1BrowserClient } from "src/clients/client";
-import { getConfigByChainName } from "zkwasm-deployment/src/config";
-import { L1ClientRole } from "zkwasm-deployment/src/types";
+import { withL1BrowserClient, L1BrowserClient } from "../../src/clients/client";
 
-async function BrowserExample(configName: string) {
-  let config = await getConfigByChainName(L1ClientRole.Wallet, configName);
+async function BrowserExample() {
+  await withL1BrowserClient(
+    { chainId: 115511, chainName: "sepolia" },
+    async (l1client: L1BrowserClient) => {
+      // Connect to the browser provider such as Metamask
+      // Most actions will be performed by the browser provider
 
-  await withL1BrowserClient(config, async (l1client: L1BrowserClient) => {
-    // Connect to the browser provider such as Metamask
+      // init will ask the user to switch networks to the provided config network
+      await l1client.init();
 
-    // init will ask the user to switch networks to the provided config network
-    await l1client.init();
+      const { connector } = l1client;
+      // Connector information such as provider, user address, etc.
 
-    const { connector } = l1client;
-    // Connector information such as provider, user address, etc.
+      const address = (await connector.getJsonRpcSigner()).address;
+      console.log("address: ", address);
 
-    const address = (await connector.getJsonRpcSigner()).address;
-    console.log("address: ", address);
+      // Contract methods can be called by the client
+      let token = await l1client.getTokenContract();
+      let proxy = await l1client.getProxyContract();
 
-    // Contract methods can be called by the client
-    let token = await l1client.getTokenContract();
-    let proxy = await l1client.getProxyContract();
+      // The client can call the functions implemented in the contract class
+      let approval = await token.approve(
+        await proxy.getEthersContract().getAddress(),
+        BigInt("10000000000000000000")
+      );
 
-    // The client can call the functions implemented in the contract class
-    let approval = await token.approve(
-      await proxy.getEthersContract().getAddress(),
-      BigInt("10000000000000000000")
-    );
+      await approval.wait();
 
-    approval.wait();
+      // Directly call the contract method if necessary
+      let tx = await token.getEthersContract().transfer.send(BigInt(100));
 
-    // Directly call the contract method if necessary
-    let tx = await token.getEthersContract().transfer.send(BigInt(100));
+      await tx.wait();
 
-    await tx.wait();
-
-    console.log("transactionHash: ", tx?.hash);
-  });
+      console.log("transactionHash: ", tx?.hash);
+    }
+  );
 }
 ```

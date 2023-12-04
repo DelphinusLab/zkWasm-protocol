@@ -49,16 +49,8 @@ export type DelphinusConnector =
 
 export type MaybePromise<T> = T | Promise<T>;
 
-// Abstract class for DelphinusClient which should be implemented by client classes
-export abstract class DelphinusClient<T extends DelphinusConnector> {
-  readonly connector: T;
-  protected readonly config: ChainConfig;
-
-  constructor(config: ChainConfig, connector: T) {
-    this.config = config;
-    this.connector = connector;
-  }
-
+// Abstract class for DelphinusClient which should be implemented by client classes with necessary functions
+export abstract class DelphinusClient {
   abstract getProxyContract(account?: string): MaybePromise<ProxyContract>;
   abstract getGasContract(
     address?: string,
@@ -73,14 +65,23 @@ export abstract class DelphinusClient<T extends DelphinusConnector> {
 }
 
 // L1 Browser Client to be used only in browser environments and typically with an injected/external wallet provider such as metamask.
-export class L1BrowserClient extends DelphinusClient<DelphinusBrowserConnector> {
-  constructor(config: ChainConfig) {
-    let connector = new DelphinusBrowserConnector();
-    super(config, connector);
+export class L1BrowserClient extends DelphinusClient {
+  readonly connector: DelphinusBrowserConnector;
+
+  // some fields for the client which are different to server client
+  readonly chainName: string;
+  readonly chainId: string; // Store as string due to indexing json map in deployment repo
+
+  // Pass in some params to the constructor to initialize the client
+  constructor(chainName: string, chainId: number) {
+    super();
+    this.chainName = chainName;
+    this.chainId = chainId.toString();
+    this.connector = new DelphinusBrowserConnector();
   }
 
   async init() {
-    console.log(`init_proxy on %s`, this.config.chainName);
+    console.log(`init_proxy on %s`, this.chainName);
     await this.switchNet();
   }
 
@@ -89,7 +90,7 @@ export class L1BrowserClient extends DelphinusClient<DelphinusBrowserConnector> 
   }
 
   getChainIdHex() {
-    return "0x" + new BN(this.config.deviceId).toString(16);
+    return "0x" + new BN(this.chainId).toString(16);
   }
 
   async getDefaultAccount() {
@@ -98,21 +99,21 @@ export class L1BrowserClient extends DelphinusClient<DelphinusBrowserConnector> 
 
   async getProxyContract(): Promise<ProxyContract> {
     return new ProxyContract(
-      ProxyContract.getContractAddress(this.config.deviceId),
+      ProxyContract.getContractAddress(this.chainId),
       await this.connector.getJsonRpcSigner()
     );
   }
 
   async getGasContract(address?: string): Promise<GasContract> {
     return new GasContract(
-      address || GasContract.getContractAddress(this.config.deviceId),
+      address || GasContract.getContractAddress(this.chainId),
       await this.connector.getJsonRpcSigner()
     );
   }
 
   async getTokenContract(address?: string): Promise<TokenContract> {
     return new TokenContract(
-      address || TokenContract.getContractAddress(this.config.deviceId),
+      address || TokenContract.getContractAddress(this.chainId),
       await this.connector.getJsonRpcSigner()
     );
   }
@@ -124,12 +125,14 @@ export class L1BrowserClient extends DelphinusClient<DelphinusBrowserConnector> 
 
 // Client to be used in server environments. It uses a private key to sign transactions.
 // If no private key is provided, it will be a read-only client.
-export class L1ServerClient extends DelphinusClient<
-  DelphinusWalletConnector | DelphinusReadOnlyConnector
-> {
+export class L1ServerClient extends DelphinusClient {
+  readonly connector: DelphinusWalletConnector | DelphinusReadOnlyConnector;
+  protected readonly config: ChainConfig;
   constructor(config: ChainConfig) {
+    super();
     let connector = getDelphinusConnectorFromConfig(config);
-    super(config, connector);
+    this.config = config;
+    this.connector = connector;
   }
 
   async init() {
@@ -212,10 +215,16 @@ export async function withL1ServerClient<T>(
 }
 
 export async function withL1BrowserClient<T>(
-  config: ChainConfig,
+  {
+    chainName,
+    chainId,
+  }: {
+    chainName: string;
+    chainId: number;
+  },
   cb: (_: L1BrowserClient) => Promise<T>
 ) {
-  const l1Client = new L1BrowserClient(config);
+  const l1Client = new L1BrowserClient(chainName, chainId);
   await l1Client.init();
   try {
     return await cb(l1Client);
