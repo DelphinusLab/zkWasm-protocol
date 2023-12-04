@@ -50,7 +50,8 @@ export type DelphinusConnector =
 export type MaybePromise<T> = T | Promise<T>;
 
 // Abstract class for DelphinusClient which should be implemented by client classes with necessary functions
-export abstract class DelphinusClient {
+export abstract class DelphinusClient<T extends DelphinusConnector> {
+  abstract connector: T;
   abstract getProxyContract(account?: string): MaybePromise<ProxyContract>;
   abstract getGasContract(
     address?: string,
@@ -65,7 +66,7 @@ export abstract class DelphinusClient {
 }
 
 // L1 Browser Client to be used only in browser environments and typically with an injected/external wallet provider such as metamask.
-export class L1BrowserClient extends DelphinusClient {
+export class L1BrowserClient extends DelphinusClient<DelphinusBrowserConnector> {
   readonly connector: DelphinusBrowserConnector;
 
   // some fields for the client which are different to server client
@@ -83,10 +84,6 @@ export class L1BrowserClient extends DelphinusClient {
   async init() {
     console.log(`init_proxy on %s`, this.chainName);
     await this.switchNet();
-  }
-
-  async close() {
-    // await this.web3.close();
   }
 
   getChainIdHex() {
@@ -125,7 +122,9 @@ export class L1BrowserClient extends DelphinusClient {
 
 // Client to be used in server environments. It uses a private key to sign transactions.
 // If no private key is provided, it will be a read-only client.
-export class L1ServerClient extends DelphinusClient {
+export class L1ServerClient extends DelphinusClient<
+  DelphinusWalletConnector | DelphinusReadOnlyConnector
+> {
   readonly connector: DelphinusWalletConnector | DelphinusReadOnlyConnector;
   protected readonly config: ChainConfig;
   constructor(config: ChainConfig) {
@@ -139,10 +138,6 @@ export class L1ServerClient extends DelphinusClient {
     console.log(`init_proxy on %s`, this.config.chainName);
 
     // await this.connector.connect();
-  }
-
-  async close() {
-    // await this.web3.close();
   }
 
   get signer() {
@@ -209,8 +204,9 @@ export async function withL1ServerClient<T>(
   await l1Client.init();
   try {
     return await cb(l1Client);
-  } finally {
-    await l1Client.close();
+  } catch (e) {
+    console.error(e);
+    throw e;
   }
 }
 
@@ -228,7 +224,8 @@ export async function withL1BrowserClient<T>(
   await l1Client.init();
   try {
     return await cb(l1Client);
-  } finally {
-    await l1Client.close();
+  } catch (e) {
+    console.error(e);
+    throw e;
   }
 }
