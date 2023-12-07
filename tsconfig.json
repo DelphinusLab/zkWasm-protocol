@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2016",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -17,5 +17,5 @@
     "sourceMap": true,
     "outDir": "./dist"
   },
-  "include": ["src/**/*","tests"]
+  "include": ["src/**/*", "tests"]
 }
