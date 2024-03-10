@@ -228,20 +228,30 @@ contract Proxy is DelphinusProxy {
 
         uint256 sha_pack = uint256(sha256(tx_data));
         require(
-            sha_pack == (instances[0][2] << 128) + instances[0][3],
+            sha_pack ==
+                (instances[0][8] << 192) +
+                    (instances[0][9] << 128) +
+                    (instances[0][10] << 64) +
+                    instances[0][11],
             "Inconstant: Sha data inconsistant"
         );
 
         require(
-            merkle_root == instances[0][0],
+            merkle_root ==
+                (instances[0][0] << 192) +
+                    (instances[0][1] << 128) +
+                    (instances[0][2] << 64) +
+                    instances[0][3],
             "Inconstant: Merkle root dismatch"
         );
 
         verifier.verify(proof, verify_instance, aux, instances);
 
         uint256 sideEffectCalled = perform_txs(tx_data, ridInfo.batch_size);
-
-        uint256 new_merkle_root = instances[0][1];
+        uint256 new_merkle_root = (instances[0][4] << 192) +
+            (instances[0][5] << 128) +
+            (instances[0][6] << 64) +
+            instances[0][7];
         merkle_root = new_merkle_root;
         rid = ridInfo.rid + ridInfo.batch_size;
         emit Ack(ridInfo.rid, sideEffectCalled);
