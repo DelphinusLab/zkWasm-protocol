@@ -13,3 +13,11 @@
 - common struct: accountIndex(4 bytes) objectIndex(4 bytes)
 
 - opcode: enum { deposit, withdraw, ... }
+
+## How to deploy contracts
+// ignition
+
+## How to test contracts
+// test
+
+## How to compile contracts
