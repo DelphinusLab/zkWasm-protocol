@@ -1,9 +1,8 @@
 import {
-  loadFixture,
-} from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
+  loadFixture
+} from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
-import { viem } from "hardhat";
-import { bytesToBigInt } from "viem";
+import { ethers, network } from "hardhat";
 
 describe("Proxy contract", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -16,29 +15,33 @@ describe("Proxy contract", function () {
       184, 20, 145, 63, 43, 245, 186, 75, 233, 43, 42,
       187, 217, 104, 152, 219, 89, 125, 199, 161, 9
     ]);
-    let root = bytesToBigInt(initial_root);
-    const publicClient = await viem.getPublicClient();
-    const chainId = await publicClient.getChainId();
-    const proxy = await viem.deployContract("Proxy", [chainId, root]);
+    let root = ethers.toBigInt(initial_root);
+    const chainId = network.config.chainId;
+    const proxy = await ethers.deployContract("Proxy", [chainId, root]);
 
-    const dummyVerifier = await viem.deployContract("DummyVerifier");
-    await proxy.write.setVerifier([dummyVerifier.address]);
+    // Deploy the DummyVerifier contract
+    const dummyVerifier = await ethers.deployContract("DummyVerifier");
+
+    // Set the verifier address in the proxy contract
+    const verifierAddress = await dummyVerifier.getAddress();
+    await proxy.setVerifier(verifierAddress);
+
     return { proxy };
   }
 
-  describe("getProxyInfo", function () {
+  describe("setVerifier", function () {
     it("The vidBeforeSet should not be 0", async function () {
       const { proxy } = await loadFixture(deployProxyFixture);
 
-      let infoBeforeSet: any = await proxy.read.getProxyInfo();
+      let infoBeforeSet: any = await proxy.getProxyInfo();
       expect(infoBeforeSet["verifier"]).to.not.equal(0n);
     });
 
     it("The vidAfterSet should be 0", async function () {
       const { proxy } = await loadFixture(deployProxyFixture);
 
-      await proxy.write.setVerifier(["0x0000000000000000000000000000000000000000"]);
-      let infoAfterSet: any = await proxy.read.getProxyInfo();
+      await proxy.setVerifier("0x0000000000000000000000000000000000000000");
+      let infoAfterSet: any = await proxy.getProxyInfo();
       expect(infoAfterSet["verifier"]).to.equal(0n);
     });
   });
