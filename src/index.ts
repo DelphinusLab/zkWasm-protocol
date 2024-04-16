@@ -3,6 +3,7 @@ import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
 import { deployContract } from "./clients/client";
 import { RidInfo } from "./clients/contracts/proxy";
+import { encodeL1address } from "web3subscriber/src/addresses";
 
 export interface Tx {
   toBinary: (endian: BN.Endianness) => string;
@@ -19,6 +20,40 @@ export class Address {
   }
   toU256Bytes() {
       return new BN(this.address, 16, "be").toBuffer("be",32).toString("hex");
+  }
+}
+
+
+export class TxWithdraw {
+  nonce: BN;
+  accountIndex: BN;
+  tokenIndex: BN;
+  amount: BN;
+  opcode: BN;
+  l1address: Address;
+
+  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address: Address, networkId: number) {
+    this.nonce = nonce;
+    this.accountIndex = accountIndex;
+    this.tokenIndex = tokenIndex;
+    this.amount = amount;
+    this.l1address = new Address(encodeL1address(l1address.address, networkId.toString(16)).toString(16));
+    this.opcode = new BN(1);
+  }
+
+  toBinary(endian: BN.Endianness) {
+    let bytes = [
+      this.opcode.toBuffer(endian, 1),
+      this.nonce.toBuffer(endian, 7),
+      this.accountIndex.toBuffer(endian, 4),
+      this.tokenIndex.toBuffer(endian, 4),
+      this.amount.toBuffer(endian, 32),
+    ]
+    .map((x) => {
+        return x.toString("hex");
+    })
+    .join("") + this.l1address.toU256Bytes();
+    return bytes;
   }
 }
 

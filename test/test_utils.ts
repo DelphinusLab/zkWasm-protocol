@@ -78,7 +78,7 @@ export async function test_verify(
 
       // Bind the transaction method to an action name
       let r = await txbinder.execute("Verify", () => {
-      // Execute some transaction which returns a TransactionResponse
+        // Execute some transaction which returns a TransactionResponse
         return txdata.verify(
           [new BN("0")], // proof
           [new BN("0")], // batchinstance
