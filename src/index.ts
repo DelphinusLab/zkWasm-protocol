@@ -1,9 +1,9 @@
 import BN from "bn.js";
 import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
-import { deployContract } from "./clients/client";
-import { RidInfo } from "./clients/contracts/proxy";
 import { encodeL1address } from "web3subscriber/src/addresses";
+import { RidInfo } from "./clients/contracts/proxy";
+import { Proxy } from "../typechain-types";
 
 export interface Tx {
   toBinary: (endian: BN.Endianness) => string;
@@ -22,7 +22,6 @@ export class Address {
       return new BN(this.address, 16, "be").toBuffer("be",32).toString("hex");
   }
 }
-
 
 export class TxWithdraw {
   nonce: BN;
@@ -57,7 +56,7 @@ export class TxWithdraw {
   }
 }
 
-export class TxDeposit{
+export class TxDeposit {
   nonce: BN;
   accountIndex: BN;
   tokenIndex: BN;
@@ -115,6 +114,7 @@ export class TxData {
 
   getTxData(): string {
     let data = this.transactions.map((x) => x.toBinary("be")).join("");
+    console.log("data", data);
     console.assert(data.length == 160);
     return data;
     /*
@@ -126,18 +126,20 @@ export class TxData {
     */
   }
 
-  async verify(proof: BN[], batchinstance: BN[], aux: BN[], rid: RidInfo) {
-    let { proxy } = await deployContract();
+  async verify(proxy: Proxy, proof: BN[], batchinstance: BN[], aux: BN[], rid: RidInfo) {
     console.log("wasminputs", this.getTxData());
     console.log("verifierinputs", this.getVerifierInputs());
     return proxy.verify(
-      this.getTxData(),
-      proof,
-      batchinstance,
-      aux,
+      "0x" + this.getTxData(),
+      [proof.toString()],
+      [batchinstance.toString()],
+      [aux.toString()],
       [this.getVerifierInputs().map((x) => x.toString())], // BN format in dec
       //[this.getZkwasmInstances()],
-      rid
+      {
+        rid: rid.rid.toString(),
+        batch_size: rid.batch_size.toString()
+      }
     )
   }
 }

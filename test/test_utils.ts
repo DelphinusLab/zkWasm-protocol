@@ -1,14 +1,25 @@
 import BN from "bn.js";
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import { Log, LogDescription } from "ethers";
 import { TxBinder } from "web3subscriber/src/txbinder";
 import { encodeL1address } from "web3subscriber/src/addresses";
-import { RidInfo } from "../src/clients/contracts/proxy";
 import { TxData } from "../src/index";
-import { deployContract } from "../src/clients/client";
+import { RidInfo } from "../src/clients/contracts/proxy";
+import { Proxy } from "../typechain-types";
+
+const initial_root = new Uint8Array([
+  166, 157, 178, 62, 35, 83, 140, 56, 9, 235, 134,
+  184, 20, 145, 63, 43, 245, 186, 75, 233, 43, 42,
+  187, 217, 104, 152, 219, 89, 125, 199, 161, 9
+]);
+
+export let root = ethers.toBigInt(initial_root);
+
+export const chainId: number = network.config.chainId as number;
 
 async function getEvent(action: string, blockNumber: bigint) {
-  const { proxy } = await deployContract();
+  // Deploy the Proxy contract
+  const proxy = await ethers.deployContract("Proxy", [chainId, root]);
 
   // The queryFilter returns Promise<(Log | EventLog)[]> and
   // the EventLog inherites from Log. So, we can use Log[].
@@ -50,10 +61,10 @@ async function getEvent(action: string, blockNumber: bigint) {
 
 // TODO add proof, batchinstance, aux parameters
 export async function test_verify(
+  proxy: Proxy,
   txdata: TxData,
   action: string,
 ) {
-  const { proxy, chainId } = await deployContract();
   let txbinder = new TxBinder();
 
   console.log("testing verify ...");
@@ -63,10 +74,10 @@ export async function test_verify(
     try {
       let proxyInfo = await proxy.getProxyInfo();
       console.log("onchain merkle_root", proxyInfo.merkle_root.toString());
-      console.assert(proxyInfo.merkle_root == txdata.oldroot);
+      console.assert(proxyInfo.merkle_root.toString() == txdata.oldroot.toString());
       let ridInfo: RidInfo = {
-        rid: new BN(proxyInfo.rid),
-        batch_size: new BN("1")
+        rid: new BN(proxyInfo.rid.toString()),
+        batch_size: new BN(1)
       };
 
       // Bind some callbacks to the Verify action
@@ -80,17 +91,17 @@ export async function test_verify(
       let r = await txbinder.execute("Verify", () => {
         // Execute some transaction which returns a TransactionResponse
         return txdata.verify(
+          proxy, // proxy
           [new BN("0")], // proof
           [new BN("0")], // batchinstance
           [new BN("0")], // aux
-          ridInfo
+          ridInfo // ridInfo
         );
       });
 
       console.log("done", txresponse!.hash);
       console.log("Send Transaction Successfully: Passed");
-      let e = await getEvent(action, txresponse!.blockNumber);
-      console.log(e);
+      await getEvent(action, txresponse!.blockNumber);
       console.log("Get AckEvent successfully: Passed");
       return r;
     } catch (e: any) {
@@ -186,7 +197,15 @@ async function verify(
 */
 
 export async function mintToken() {
-  const { token, tokenAddress, owner } = await deployContract();
+  // Deploy the Token contract
+  const token = await ethers.deployContract("Token");
+
+  // Get the address of the Token contract
+  const tokenAddress = await token.getAddress();
+
+  // Get the owner from the hardhat node
+  const [owner] = await ethers.getSigners();
+
   let txbinder = new TxBinder();
 
   try {
@@ -231,7 +250,15 @@ export async function mintToken() {
 }
 
 export async function addToken () {
-  const { proxy, chainId, tokenAddress } = await deployContract();
+  // Deploy the Proxy contract
+  const proxy = await ethers.deployContract("Proxy", [chainId, root]);
+
+  // Deploy the Token contract
+  const token = await ethers.deployContract("Token");
+
+  // Get the address of the Token contract
+  const tokenAddress = await token.getAddress();
+
   let tokenIndex = 0;
 
   try {

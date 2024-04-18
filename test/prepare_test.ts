@@ -1,7 +1,6 @@
 import { mintToken, addToken } from "./test_utils";
 
-async function main() {
+export async function prepare_test() {
     await mintToken();
     await addToken();
 }
-main().then(v => {process.exit();})

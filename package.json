@@ -14,8 +14,7 @@
     "node-fetch": "^2.6.6",
     "process": "^0.11.10",
     "web3": "^1.7.5",
-    "web3subscriber": "git+ssh://git@github.com:DelphinusLab/delphinus-web3subscriber.git",
-    "zkwasm-deployment": "file:../zkWasm-deployment"
+    "web3subscriber": "git+ssh://git@github.com:DelphinusLab/delphinus-web3subscriber.git"
   },
   "scripts": {
     "prepare": "sh scripts/install_dep.sh",
