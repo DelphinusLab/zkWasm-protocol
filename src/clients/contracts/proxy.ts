@@ -1,7 +1,8 @@
 import { TxDeposit } from "../../index";
 import { TxBinder } from "web3subscriber/src/txbinder";
-import { ethers } from "hardhat";
+import { ethers, getNamedAccounts } from "hardhat";
 import BN from "bn.js";
+import { Token } from "../../../typechain-types";
 
 export interface RidInfo {
   rid: BN;
@@ -28,8 +29,9 @@ export class ProxyContract {
 
     //TODO assert txdeposit is TxDeposit
 
-    // Deploy the Token contract
-    const token = await ethers.deployContract("Token");
+    // Get proxy contract
+    const { deployer } = await getNamedAccounts();
+    const token = await ethers.getContract<Token>('Token', deployer);
 
     let allowance = await token.allowance(
       "0x" + l1account,

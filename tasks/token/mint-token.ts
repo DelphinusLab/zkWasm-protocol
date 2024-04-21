@@ -1,18 +1,17 @@
-import BN from 'bn.js';
 import { TxBinder } from "web3subscriber/src/txbinder";
-import { ethers } from "hardhat";
+import { Token } from "../../typechain-types";
 
-async function main() {
+async function main(targetAccount: string) {
   let txbinder = new TxBinder();
 
-  // Deploy the Token contract
-  const token = await ethers.deployContract("Token");
+  // Get the deployer account 
+  const { deployer } = await getNamedAccounts();
+
+  // Get the Token contract
+  const token = await ethers.getContract<Token>("Token", deployer);
 
   // Get the address of the Token contract
   const tokenAddress = await token.getAddress();
-
-  // Get the owner and otherAccount from the hardhat node
-  const [owner, otherAccount] = await ethers.getSigners();
 
   try {
     // Bind a callback to the snapshot event
@@ -30,35 +29,33 @@ async function main() {
     txbinder.snapshot("Mint");
 
     console.log("mint token:", tokenAddress);
-    let balance = await token.balanceOf(owner.address);
+    let balance = await token.balanceOf(deployer);
     console.log("sender: balance before mint:", balance);
 
     // Bind the transaction method to an action name
-    let r = await txbinder.execute("mint", () => {
+    await txbinder.execute("mint", () => {
       // Execute some transaction which returns a TransactionResponse
       return token.mint(BigInt("10000000000000000000"));
     });
 
-    balance = await token.balanceOf(owner.address);
+    balance = await token.balanceOf(deployer);
     console.log("sender: balance after mint:", balance);
 
     // Bind the transaction method to an action name
     await txbinder.execute("transfer", () => {
       // Execute some transaction which returns a TransactionResponse
-      return token.transfer(otherAccount.address, BigInt("10000000000000000000"))
+      return token.transfer(targetAccount, BigInt("10000000000000000000"))
     });
 
-    balance = await token.balanceOf(otherAccount.address);
+    balance = await token.balanceOf(targetAccount);
     console.log("balance of recipient after transfer", balance); 
   } catch (err) {
     console.log("%s", err);
   }
 }
 
-/* .once("transactionHash",hash => console.log(hash) */
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
+task("mintToken", "Mint Token's token to wallet")
+  .addParam("targetaccount", "The MetaMask wallet address")
+  .setAction(async ({ targetaccount }: { targetaccount: string }) => {
+    await main(targetaccount);
   });

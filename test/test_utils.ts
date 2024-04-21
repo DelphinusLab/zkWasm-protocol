@@ -1,25 +1,16 @@
 import BN from "bn.js";
-import { ethers, network } from "hardhat";
+import { ethers, getNamedAccounts, getChainId } from "hardhat";
 import { Log, LogDescription } from "ethers";
 import { TxBinder } from "web3subscriber/src/txbinder";
 import { encodeL1address } from "web3subscriber/src/addresses";
 import { TxData } from "../src/index";
 import { RidInfo } from "../src/clients/contracts/proxy";
-import { Proxy } from "../typechain-types";
-
-const initial_root = new Uint8Array([
-  166, 157, 178, 62, 35, 83, 140, 56, 9, 235, 134,
-  184, 20, 145, 63, 43, 245, 186, 75, 233, 43, 42,
-  187, 217, 104, 152, 219, 89, 125, 199, 161, 9
-]);
-
-export let root = ethers.toBigInt(initial_root);
-
-export const chainId: number = network.config.chainId as number;
+import { Proxy, Token } from "../typechain-types";
 
 async function getEvent(action: string, blockNumber: bigint) {
-  // Deploy the Proxy contract
-  const proxy = await ethers.deployContract("Proxy", [chainId, root]);
+  // Get proxy contract
+  const { deployer } = await getNamedAccounts();
+  const proxy = await ethers.getContract<Proxy>('Proxy', deployer);
 
   // The queryFilter returns Promise<(Log | EventLog)[]> and
   // the EventLog inherites from Log. So, we can use Log[].
@@ -66,9 +57,10 @@ export async function test_verify(
   action: string,
 ) {
   let txbinder = new TxBinder();
+  const chainId = await getChainId();
 
   console.log("testing verify ...");
-  console.log("start to send to:", "0x" + chainId!.toString(16));
+  console.log("start to send to:", "0x" + Number(chainId).toString(16));
   while (true) {
     let txresponse = null;
     try {
@@ -113,7 +105,7 @@ export async function test_verify(
         if (e.message == "ESOCKETTIMEDOUT") {
           await new Promise((resolve) => setTimeout(resolve, 5000));
         } else if (e.message == "nonce too low") {
-          console.log("failed on:", "0x" + chainId!.toString(16), e.message); // not sure
+          console.log("failed on:", "0x" + Number(chainId).toString(16), e.message); // not sure
           return;
         } else {
           console.log("Unhandled exception during verify");
@@ -197,14 +189,12 @@ async function verify(
 */
 
 export async function mintToken() {
-  // Deploy the Token contract
-  const token = await ethers.deployContract("Token");
+  // Get Token contract
+  const { deployer } = await getNamedAccounts();
+  const token = await ethers.getContract<Token>('Token', deployer);
 
   // Get the address of the Token contract
   const tokenAddress = await token.getAddress();
-
-  // Get the owner from the hardhat node
-  const [owner] = await ethers.getSigners();
 
   let txbinder = new TxBinder();
 
@@ -230,7 +220,7 @@ export async function mintToken() {
     txbinder.snapshot("Mint");
 
     console.log("mint token:", tokenAddress);
-    let balance = await token.balanceOf(owner.address);
+    let balance = await token.balanceOf(deployer);
 
     if(balance < BigInt("10000000000000000")) {
       console.log("Monitor Account's balance before mint:", balance.toString(10));
@@ -238,7 +228,7 @@ export async function mintToken() {
       // Execute the transaction method and handle the transactionHash callback
       await txbinder.execute("mint");
 
-      balance = await token.balanceOf(owner.address);
+      balance = await token.balanceOf(deployer);
       console.log("Monitor Account's balance:", balance.toString(10));
     }else{
       console.log("Monitor Account's balance:", balance.toString(10));
@@ -250,11 +240,14 @@ export async function mintToken() {
 }
 
 export async function addToken () {
-  // Deploy the Proxy contract
-  const proxy = await ethers.deployContract("Proxy", [chainId, root]);
+  const chainId = await getChainId();
 
-  // Deploy the Token contract
-  const token = await ethers.deployContract("Token");
+  // Get Proxy contract
+  const { deployer } = await getNamedAccounts();
+  const proxy = await ethers.getContract<Proxy>('Proxy', deployer);
+
+  // Get Token contract
+  const token = await ethers.getContract<Token>('Token', deployer);
 
   // Get the address of the Token contract
   const tokenAddress = await token.getAddress();
@@ -263,7 +256,7 @@ export async function addToken () {
 
   try {
     let existing_tokens = await proxy.allTokens();
-    let tokenUid = encodeL1address(tokenAddress.replace("0x", ""), chainId!.toString(16));
+    let tokenUid = encodeL1address(tokenAddress.replace("0x", ""), Number(chainId).toString(16));
     let tokenUidString = tokenUid.toString(16);
     let checkExistToken = 0;
 

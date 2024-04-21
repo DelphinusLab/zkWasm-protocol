@@ -13,3 +13,6 @@
 - common struct: accountIndex(4 bytes) objectIndex(4 bytes)
 
 - opcode: enum { deposit, withdraw, ... }
+
+redeploy contract
+--reset: This flag resets the deployments from scratch. Previously deployed contracts are not considered and deleted from disk.

@@ -2,8 +2,8 @@ import BN from "bn.js";
 import { TxData, TxDeposit, TxWithdraw, Address } from "../src/index";
 import { expect } from "chai";
 import { ProxyContract } from "../src/clients/contracts/proxy";
-import { root, chainId, test_verify } from "./test_utils";
-import { ethers } from "hardhat";
+import { test_verify } from "./test_utils";
+import { ethers, getNamedAccounts, getChainId } from "hardhat";
 import { prepare_test } from "./prepare_test";
 import { Proxy } from "../typechain-types";
 
@@ -14,8 +14,9 @@ const l1account = "D91A86B4D8551290655caCED21856eF6E532F2D4";
 describe("deposit_withdraw_test", async function () {
   // use the funtion when you do not want to set hard code
   async function getCurrentRoot() {
-    // Deploy the Proxy contract
-    const proxy: Proxy = await ethers.deployContract("Proxy", [chainId, root]);
+    // Get proxy contract
+    const { deployer } = await getNamedAccounts();
+    const proxy = await ethers.getContract<Proxy>('Proxy', deployer);
 
     let proxyInfo = await proxy.getProxyInfo();
     let currentRoot: string = proxyInfo.merkle_root.toString();
@@ -25,40 +26,14 @@ describe("deposit_withdraw_test", async function () {
   it("The return value of test_verify should not be null or undefined", async function () {
     await prepare_test();
 
-    // Deploy the SetKey contract
-    const setKey = await ethers.deployContract("SetKey");
+    const chainId = await getChainId();
 
-    // Get the address of the SetKey contract
-    const setKeyAddress = await setKey.getAddress();
-
-    // Deploy the Deposit contract
-    const deposit = await ethers.deployContract("Deposit");
-
-    // Get the address of the Deposit contract
-    const depositAddress = await deposit.getAddress();
-
-    // Deploy the withdraw contract
-    const withdraw = await ethers.deployContract("Withdraw");
-
-    // Get the address of the withdraw contract
-    const withdrawAddress = await withdraw.getAddress();
-
-    // Deploy the Proxy contract
-    const proxy: Proxy = await ethers.deployContract("Proxy", [chainId, root]);
+    // Get proxy contract
+    const { deployer } = await getNamedAccounts();
+    const proxy = await ethers.getContract<Proxy>('Proxy', deployer);
 
     // Get the address of the proxy contract
     const proxyAddress = await proxy.getAddress();
-
-    // Deploy the DummyVerifier contract
-    const dummyVerifier = await ethers.deployContract("DummyVerifier");
-
-    // Add transactions
-    proxy.addTransaction(setKeyAddress, false);
-    proxy.addTransaction(depositAddress, false);
-    proxy.addTransaction(withdrawAddress, false);
-
-    // Set verifier for the proxy contract
-    proxy.setVerifier(dummyVerifier.getAddress());
 
     let txdeposit = new TxDeposit(
       new BN(0),
@@ -78,7 +53,7 @@ describe("deposit_withdraw_test", async function () {
       new BN(0),
       new BN(1).shln(12),
       new Address("D91A86B4D8551290655caCED21856eF6E532F2D4"),
-      chainId
+      Number(chainId)
     );
     let txdatawithdraw = new TxData(
       new BN(withdraw_root, 16, "be"),

@@ -18,10 +18,24 @@
   },
   "scripts": {
     "prepare": "sh scripts/install_dep.sh",
-    "test": "npx hardhat test"
+    "test": "npx hardhat test",
+    "deploy": "npx hardhat deploy",
+    "compile": "npx hardhat compile",
+    "runScript": "npx hardhat run",
+    "mintGas": "npx hardhat mintGas",
+    "mintToken": "npx hardhat mintToken"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "hardhat": "^2.22.2"
+    "@types/chai": "^4.3.14",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.12.7",
+    "chai": "^4.3.7",
+    "ethers": "^6.12.0",
+    "hardhat": "^2.22.2",
+    "hardhat-deploy": "^0.11.45",
+    "hardhat-deploy-ethers": "^0.4.1",
+    "typescript": "^5.4.5"
   }
 }

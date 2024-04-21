@@ -12,11 +12,11 @@ export interface Tx {
 export class Address {
   address: string;
   constructor(addr: string) {
-      if(addr.substring(0, 2) == "0x") {
-          this.address = addr.substring(0, 2);
-      } else {
-          this.address = addr;
-      }
+    if(addr.substring(0, 2) == "0x") {
+      this.address = addr.substring(2);
+    } else {
+      this.address = addr;
+    }
   }
   toU256Bytes() {
       return new BN(this.address, 16, "be").toBuffer("be",32).toString("hex");
