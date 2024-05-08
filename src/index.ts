@@ -109,7 +109,35 @@ export class TxData {
   }
 
   getVerifierInputs(): Array<BN> {
-    return [this.oldroot, this.newroot, this.shaLow, this.shaHigh];
+    // Split oldroot into 4 parts
+    let oldrootStr = this.oldroot.toString(16);
+    let oldroot1 = new BN(oldrootStr.slice(0, 16), "hex", "be");
+    let oldroot2 = new BN(oldrootStr.slice(16, 32), "hex", "be");
+    let oldroot3 = new BN(oldrootStr.slice(32, 48), "hex", "be");
+    let oldroot4 = new BN(oldrootStr.slice(48, 64), "hex", "be");
+
+    // Split newroot into 4 parts
+    let newrootStr = this.newroot.toString(16);
+    let newroot1 = new BN(newrootStr.slice(0, 16), "hex", "be");
+    let newroot2 = new BN(newrootStr.slice(16, 32), "hex", "be");
+    let newroot3 = new BN(newrootStr.slice(32, 48), "hex", "be");
+    let newroot4 = new BN(newrootStr.slice(48, 64), "hex", "be");
+
+    // Split shaLow into 2 parts
+    let shalowStr = this.shaLow.toString(16);
+    let shalow1 = new BN(shalowStr.slice(0, 16), "hex", "be");
+    let shalow2 = new BN(shalowStr.slice(16, 32), "hex", "be");
+
+    // Split shaHigh into 2 parts
+    let shahighStr = this.shaHigh.toString(16);
+    let shahigh1 = new BN(shahighStr.slice(0, 16), "hex", "be");
+    let shahigh2 = new BN(shahighStr.slice(16, 32), "hex", "be");
+
+    return [
+      oldroot1, oldroot2, oldroot3, oldroot4,
+      newroot1, newroot2, newroot3, newroot4,
+      shalow1, shalow2, shahigh1, shahigh2
+    ];
   }
 
   getTxData(): string {
