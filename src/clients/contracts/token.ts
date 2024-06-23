@@ -1,11 +1,11 @@
-import BN from 'bn.js';
-import { DelphinusContract, DelphinusWeb3 } from "web3subscriber/src/client";
-import { PromiseBinder } from "web3subscriber/src/pbinder";
+import BN from "bn.js";
+import { DelphinusContract } from "web3subscriber/src/client";
+import { Signer, Provider } from "ethers";
 import { contractsInfo } from "zkwasm-deployment/config/contractsinfo";
 
 export class TokenContract extends DelphinusContract {
-  constructor(web3: DelphinusWeb3, address: string, account?: string) {
-    super(web3, TokenContract.getJsonInterface(), address, account);
+  constructor(address: string, signerOrProvider: Signer | Provider) {
+    super(address, TokenContract.getJsonInterface().abi, signerOrProvider);
   }
 
   static getJsonInterface(): any {
@@ -16,28 +16,30 @@ export class TokenContract extends DelphinusContract {
     return contractsInfo.addressMap.testToken[chainId].address;
   }
 
-  approve(address: string, amount: BN) {
-    return this.getWeb3Contract().methods.approve(address, amount).send();
+  approve(address: string, amount: BigInt) {
+    return this.getEthersContract().approve.send(address, amount);
   }
 
   async balanceOf(account: string): Promise<BN> {
-    let amount = await this.getWeb3Contract().methods.balanceOf(account).call();
+    let amount = await this.getEthersContract().balanceOf.staticCall(account);
+    console.log("balanceOf", amount);
     return new BN(amount, 10);
   }
 
-  async allowanceOf(account: string, spender: string ): Promise<BN> {
-    let amount = await this.getWeb3Contract().methods.allowance(account, spender).call();
-    return new BN(amount, 10);
+  async allowanceOf(account: string, spender: string): Promise<bigint> {
+    let amount = (await this.getEthersContract().allowance(
+      account,
+      spender
+    )) as bigint;
+    console.log("allowanceOf", amount);
+    return amount;
   }
 
-
-  mint(amount: BN) {
-    return this.getWeb3Contract().methods.mint(amount).send();
+  mint(amount: BigInt) {
+    return this.getEthersContract().mint(amount);
   }
 
-  transfer(address: string, amount: BN) {
-    return this.getWeb3Contract()
-      .methods.transfer(address, amount)
-      .send();
+  transfer(address: string, amount: BigInt) {
+    return this.getEthersContract().transfer.send(address, amount);
   }
 }

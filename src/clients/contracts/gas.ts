@@ -1,10 +1,10 @@
-import { DelphinusContract, DelphinusWeb3 } from "web3subscriber/src/client";
+import { DelphinusContract } from "web3subscriber/src/client";
 import { contractsInfo } from "zkwasm-deployment/config/contractsinfo";
-import BN from "bn.js";
+import { Signer, Provider } from "ethers";
 
 export class GasContract extends DelphinusContract {
-  constructor(web3: DelphinusWeb3, address: string, account?: string) {
-    super(web3, GasContract.getJsonInterface(), address, account);
+  constructor(address: string, signerOrProvider: Signer | Provider) {
+    super(address, GasContract.getJsonInterface().abi, signerOrProvider);
   }
 
   static getJsonInterface(): any {
@@ -15,19 +15,19 @@ export class GasContract extends DelphinusContract {
     return contractsInfo.addressMap.gasToken[chainId].address;
   }
 
-  approve(address: string, amount: BN) {
-    return this.getWeb3Contract().methods.approve(address, amount).send();
+  approve(address: string, amount: BigInt) {
+    return this.getEthersContract().approve.send(address, amount);
   }
 
   balanceOf(account: string) {
-    return this.getWeb3Contract().methods.balanceOf(account).call();
+    return this.getEthersContract().balanceOf.staticCall(account);
   }
 
-  mint(amount: BN) {
-    return this.getWeb3Contract().methods.mint(amount).send();
+  mint(amount: BigInt) {
+    return this.getEthersContract().mint.send(amount);
   }
 
-  transfer(address: string, amount: BN) {
-    return this.getWeb3Contract().methods.transfer(address, amount).send();
+  transfer(address: string, amount: BigInt) {
+    return this.getEthersContract().transfer.send(address, amount);
   }
 }

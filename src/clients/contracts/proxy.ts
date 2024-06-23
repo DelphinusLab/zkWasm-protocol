@@ -1,15 +1,17 @@
 import BN from "bn.js";
 import * as retry from "retry";
-import { DelphinusContract, DelphinusWeb3 } from "web3subscriber/src/client";
+import { DelphinusContract } from "web3subscriber/src/client";
 import { decodeL1address } from "web3subscriber/src/addresses";
-import { PromiseBinder } from "web3subscriber/src/pbinder";
+import { TxBinder } from "web3subscriber/src/txbinder";
 import { TokenContract } from "./token";
-import { TxDeposit, TxData } from "../../index";
+import { TxDeposit } from "../../index";
 import {
   extraTokens,
   Chains,
   contractsInfo,
 } from "zkwasm-deployment/config/contractsinfo";
+
+import { Provider, Signer } from "ethers";
 
 const registeredTokens = contractsInfo.tokens.concat(extraTokens);
 
@@ -53,8 +55,8 @@ export interface WithDraw {
 }
 
 export interface RidInfo {
-  rid: BN;
-  batch_size: BN;
+  rid: bigint;
+  batch_size: bigint;
 }
 
 function hexcmp(x: string, y: string) {
@@ -64,8 +66,8 @@ function hexcmp(x: string, y: string) {
 }
 
 export class ProxyContract extends DelphinusContract {
-  constructor(web3: DelphinusWeb3, address: string, account?: string) {
-    super(web3, ProxyContract.getJsonInterface(), address, account);
+  constructor(address: string, signerOrProvider: Signer | Provider) {
+    super(address, ProxyContract.getJsonInterface().abi, signerOrProvider);
   }
 
   static getJsonInterface(): any {
@@ -77,33 +79,39 @@ export class ProxyContract extends DelphinusContract {
   }
 
   static checkAddHexPrefix(hexStr: string) {
-    let s:string = hexStr;
-    if(s.substring(0,2) != "0x")
-      s = "0x" + s;
+    let s: string = hexStr;
+    if (s.substring(0, 2) != "0x") s = "0x" + s;
     return s;
   }
 
   getProxyInfo() {
-    return this.getWeb3Contract().methods.getProxyInfo().call();
+    return this.getEthersContract().getProxyInfo.staticCall();
   }
 
   allTokens(): Promise<TokenInfo[]> {
-    return this.getWeb3Contract().methods.allTokens().call();
+    return this.getEthersContract().allTokens.staticCall();
   }
 
-  addToken(tokenid: BN) {
-    return this.getWeb3Contract().methods.addToken(tokenid).send();
+  addToken(tokenid: BigInt) {
+    return this.getEthersContract().addToken.send(tokenid);
   }
 
-  private _verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], rid: RidInfo) {
-    const calldataChecked:string = ProxyContract.checkAddHexPrefix(calldata);
+  private _verify(
+    calldata: string,
+    verifydata: BigInt[],
+    verifyInstance: BigInt[],
+    aux: BigInt[],
+    instances: BigInt[][],
+    rid: RidInfo
+  ) {
+    const calldataChecked: string = ProxyContract.checkAddHexPrefix(calldata);
 
     console.log("preparing verify", calldataChecked);
     console.log("preparing verify", verifydata);
     console.log("preparing verify", verifyInstance);
     console.log("preparing verify", instances);
 
-    const tx = this.getWeb3Contract().methods.verify(
+    const tx = this.getEthersContract().verify(
       calldataChecked,
       verifydata,
       verifyInstance,
@@ -111,62 +119,67 @@ export class ProxyContract extends DelphinusContract {
       instances,
       {
         rid: rid.rid.toString(),
-        batch_size: rid.batch_size.toString()
-      },
+        batch_size: rid.batch_size.toString(),
+      }
     );
     console.log("start send");
-    return tx.send();
+    return tx;
   }
 
   private _setVerifier(verifierAddress: string) {
-    return this.getWeb3Contract()
-      .methods.setVerifier(verifierAddress)
-      .send();
+    return this.getEthersContract().setVerifier.send(verifierAddress);
   }
 
-  verify(calldata: string, verifydata: BN[], verifyInstance: BN[], aux: BN[], instances: string[][], rid: RidInfo) {
-    const pbinder = new PromiseBinder();
+  verify(
+    calldata: string,
+    verifydata: BigInt[],
+    verifyInstance: BigInt[],
+    aux: BigInt[],
+    instances: BigInt[][],
+    rid: RidInfo
+  ) {
+    const pbinder = new TxBinder();
 
-    return pbinder.return(async () => {
-      return await pbinder.bind(
-        "Verify",
-        this._verify(calldata, verifydata, verifyInstance, aux, instances, rid)
-      );
-    });
+    return pbinder.bind("Verify", () =>
+      this._verify(calldata, verifydata, verifyInstance, aux, instances, rid)
+    );
   }
 
-  approve_deposit (
+  async approve_deposit(
     tokenContract: TokenContract,
     txdeposit: TxDeposit,
-    l1account: string,
+    l1account: string
   ) {
-    const pbinder = new PromiseBinder();
-    //TODO assert txdeposit is TxDeposit
+    const txbinder = new TxBinder();
 
-    return pbinder.return(async () => {
-      let allowance = await tokenContract.allowanceOf(
-        l1account,
-        this.address()
-      );
-      console.log("Allowance is :", allowance.toString());
-      pbinder.snapshot("Approve");
-      if (allowance.lt(txdeposit.amount)) {
-        if (!allowance.isZero()) {
-          await pbinder.bind(
-            "Approve",
-            tokenContract.approve(this.address(), new BN(0))
-          );
-        }
-        await pbinder.bind(
-          "Approve",
+    // Check allowance
+
+    const allowance = await tokenContract.allowanceOf(
+      l1account,
+      await this.getEthersContract().getAddress()
+    );
+    console.log("Allowance is :", allowance.toString());
+    // check if allowance is less than deposit amount
+    if (allowance < txdeposit.amount) {
+      if (!(allowance === BigInt(0))) {
+        // Reset allowance to 0
+        await txbinder.execute("Approve", async () =>
           tokenContract.approve(
-            this.address(),
-            new BN(2).pow(new BN(256)).sub(new BN(1))
+            await this.getEthersContract().getAddress(),
+            BigInt(0)
           )
         );
       }
-      console.log("Deposit Info:", txdeposit);
-    });
+      // Set allowance to max
+      await txbinder.execute("Approve", async () =>
+        tokenContract.approve(
+          await this.getEthersContract().getAddress(),
+          BigInt(2) ** BigInt(256) - BigInt(1)
+        )
+      );
+    }
+    console.log("Approval OK, allowance is :", allowance.toString());
+    // TODO: Deposit? not in original implementation
   }
 
   async setVerifier(verifierAddress: string) {
@@ -257,5 +270,4 @@ export class ProxyContract extends DelphinusContract {
       chainInfo: _chainInfo,
     };
   }
-    
 }
