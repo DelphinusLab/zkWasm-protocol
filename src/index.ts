@@ -1,44 +1,26 @@
-import {
-  getChargeAddress,
-  dataToBN,
-  L1Client,
-  withL1Client
-} from "./clients/client.js";
-
-import {
-  ProxyInfo,
-  TokenInfo,
-  Deposit,
-  SwapAck,
-  WithDraw,
-  RidInfo,
-  ProxyContract
-} from "./clients/contracts/proxy.js";
-
-import { contractsInfo } from "zkwasm-deployment/config/contractsinfo";
-import { GasContract } from "./clients/contracts/gas.js";
-import { TokenContract } from "./clients/contracts/token.js";
 import BN from "bn.js";
 import sha256 from "crypto-js/sha256";
 import hexEnc from "crypto-js/enc-hex";
 import { encodeL1address } from "web3subscriber/src/addresses";
+import { RidInfo } from "./clients/contracts/proxy";
+import { Proxy } from "../typechain-types";
 
 export interface Tx {
-    toBinary: (endian: BN.Endianness) => string;
+  toBinary: (endian: BN.Endianness) => string;
 }
 
 export class Address {
-    address: string;
-    constructor(addr: string) {
-        if(addr.substring(0, 2) == "0x") {
-            this.address = addr.substring(0, 2);
-        } else {
-            this.address = addr;
-        }
+  address: string;
+  constructor(addr: string) {
+    if(addr.substring(0, 2) == "0x") {
+      this.address = addr.substring(2);
+    } else {
+      this.address = addr;
     }
-    toU256Bytes() {
-        return new BN(this.address, 16, "be").toBuffer("be",32).toString("hex");
-    }
+  }
+  toU256Bytes() {
+      return new BN(this.address, 16, "be").toBuffer("be",32).toString("hex");
+  }
 }
 
 export class TxWithdraw {
@@ -74,7 +56,7 @@ export class TxWithdraw {
   }
 }
 
-export class TxDeposit{
+export class TxDeposit {
   nonce: BN;
   accountIndex: BN;
   tokenIndex: BN;
@@ -107,7 +89,6 @@ export class TxDeposit{
   }
 }
 
-
 export class TxData {
   oldroot: BN;
   newroot: BN;
@@ -128,11 +109,40 @@ export class TxData {
   }
 
   getVerifierInputs(): Array<BN> {
-    return [this.oldroot, this.newroot, this.shaLow, this.shaHigh];
+    // Split oldroot into 4 parts
+    let oldrootStr = this.oldroot.toString(16);
+    let oldroot1 = new BN(oldrootStr.slice(0, 16), "hex", "be");
+    let oldroot2 = new BN(oldrootStr.slice(16, 32), "hex", "be");
+    let oldroot3 = new BN(oldrootStr.slice(32, 48), "hex", "be");
+    let oldroot4 = new BN(oldrootStr.slice(48, 64), "hex", "be");
+
+    // Split newroot into 4 parts
+    let newrootStr = this.newroot.toString(16);
+    let newroot1 = new BN(newrootStr.slice(0, 16), "hex", "be");
+    let newroot2 = new BN(newrootStr.slice(16, 32), "hex", "be");
+    let newroot3 = new BN(newrootStr.slice(32, 48), "hex", "be");
+    let newroot4 = new BN(newrootStr.slice(48, 64), "hex", "be");
+
+    // Split shaLow into 2 parts
+    let shalowStr = this.shaLow.toString(16);
+    let shalow1 = new BN(shalowStr.slice(0, 16), "hex", "be");
+    let shalow2 = new BN(shalowStr.slice(16, 32), "hex", "be");
+
+    // Split shaHigh into 2 parts
+    let shahighStr = this.shaHigh.toString(16);
+    let shahigh1 = new BN(shahighStr.slice(0, 16), "hex", "be");
+    let shahigh2 = new BN(shahighStr.slice(16, 32), "hex", "be");
+
+    return [
+      oldroot1, oldroot2, oldroot3, oldroot4,
+      newroot1, newroot2, newroot3, newroot4,
+      shalow1, shalow2, shahigh1, shahigh2
+    ];
   }
 
   getTxData(): string {
     let data = this.transactions.map((x) => x.toBinary("be")).join("");
+    console.log("data", data);
     console.assert(data.length == 160);
     return data;
     /*
@@ -144,47 +154,20 @@ export class TxData {
     */
   }
 
-  getZkwasmInstances(): string[] {
-    let data = this.getTxData();
-    let u64inputs = [];
-    for(var i=0; i<data.length/16; i++) {
-        u64inputs.push("0x" + data.slice(i*16,(i+1)*16));
-    }
-    return u64inputs;
-  }
-
-  verify(l1client: L1Client, proof: BN[], batchinstance: BN[], aux: BN[], rid: RidInfo) {
-    let proxy = l1client.getProxyContract();
+  async verify(proxy: Proxy, proof: BN[], batchinstance: BN[], aux: BN[], rid: RidInfo) {
     console.log("wasminputs", this.getTxData());
     console.log("verifierinputs", this.getVerifierInputs());
     return proxy.verify(
-      this.getTxData(),
-      proof,
-      batchinstance,
-      aux,
+      "0x" + this.getTxData(),
+      [proof.toString()],
+      [batchinstance.toString()],
+      [aux.toString()],
       [this.getVerifierInputs().map((x) => x.toString())], // BN format in dec
       //[this.getZkwasmInstances()],
-      rid
+      {
+        rid: rid.rid.toString(),
+        batch_size: rid.batch_size.toString()
+      }
     )
   }
-}
-
-export {
-  getChargeAddress,
-  dataToBN,
-  L1Client,
-  withL1Client,
-  ProxyContract,
-  contractsInfo,
-  GasContract,
-  TokenContract
-};
-
-export type {
-  ProxyInfo,
-  TokenInfo,
-  Deposit,
-  SwapAck,
-  WithDraw,
-  RidInfo
 }

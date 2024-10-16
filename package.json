@@ -3,43 +3,39 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@openzeppelin/contracts": "latest",
-    "@truffle/hdwallet-provider": "^1.6.0",
-    "bn.js": "^5.2.0",
+    "@openzeppelin/contracts": "^4.9.3",
+    "@types/crypto-js": "^4.2.2",
+    "bn.js": "^5.2.1",
     "buffer": "^6.0.3",
     "crypto-js": "^4.1.1",
     "delphinus-curves": "git+ssh://git@github.com:DelphinusLab/delphinus-curves.git",
-    "zkwasm-deployment": "file:../zkWasm-deployment",
     "fs-extra": "^10.0.0",
     "mongodb": "^4.1.3",
     "node-fetch": "^2.6.6",
     "process": "^0.11.10",
-    "truffle": "latest",
     "web3": "^1.7.5",
     "web3subscriber": "git+ssh://git@github.com:DelphinusLab/delphinus-web3subscriber.git"
   },
   "scripts": {
-    "dev": "npx truffle dev",
-    "build": "npx tsc",
-    "prepare": "sh scripts/install_dep.sh && npm run build"
+    "prepare": "sh scripts/install_dep.sh",
+    "test": "npx hardhat test",
+    "deploy": "npx hardhat deploy",
+    "compile": "npx hardhat compile",
+    "runScript": "npx hardhat run",
+    "mintGas": "npx hardhat mintGas",
+    "mintToken": "npx hardhat mintToken"
   },
-  "exports": {
-    "./*": "./dist/*.js"
-  },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "devDependencies": {
-    "@types/bn.js": "^5.1.0",
-    "@types/crypto-js": "^4.0.2",
-    "@types/fs-extra": "^9.0.12",
-    "@types/jest": "^26.0.15",
-    "@types/node": "^18.15.5",
-    "@types/retry": "^0.12.2",
-    "@types/lru-cache": "^5.1.1",
-    "@types/sha256": "^0.2.0",
-    "jest": "26.6.0",
-    "retry": "^0.13.1",
-    "ts-jest": "^26.0.0",
-    "typescript": "^4.3.4"
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@types/chai": "^4.3.14",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.12.7",
+    "chai": "^4.3.7",
+    "ethers": "^6.12.0",
+    "hardhat": "^2.22.2",
+    "hardhat-deploy": "^0.11.45",
+    "hardhat-deploy-ethers": "0.4.1",
+    "typescript": "^5.4.5"
   }
 }
