@@ -221,10 +221,10 @@ contract Proxy is DelphinusProxy {
     }
 
     function perform_txs(
-        bytes calldata tx_data,
-        uint256 batch_size
+        bytes calldata tx_data
     ) private returns (uint256){
         uint256 ret = 0;
+        uint256 batch_size = tx_data.length / OP_SIZE;
         for (uint i = 0; i < batch_size; i++) {
             uint8 op_code = uint8(bytesToUint(tx_data, i * OP_SIZE, 1));
             require(transactions.length > op_code, "TX index out of bound");
@@ -247,27 +247,24 @@ contract Proxy is DelphinusProxy {
         uint256[] calldata proof,
         uint256[] calldata verify_instance,
         uint256[] calldata aux,
-        uint256[][] calldata instances,
-        RidInfo calldata ridInfo
+        uint256[][] calldata instances
     ) onlySettler public {
-	// tbd: Add nonReentrant() if rm onlySettler
+	    // tbd: Add nonReentrant() if rm onlySettler
 
         uint256 sideEffectCalled;
 
-	// skip image commitments verification if it is not set
+	    // skip image commitments verification if it is not set
         if (zk_image_commitments[0] != 0) {
             require(verify_instance[1] == zk_image_commitments[0], "Invalid image commitment 0");
             require(verify_instance[2] == zk_image_commitments[1], "Invalid image commitment 1");
             require(verify_instance[3] == zk_image_commitments[2], "Invalid image commitment 2");
         }
 
-        require(rid == ridInfo.rid, "Verify: Unexpected Request Id");
-
         // [0]: old root, [1]: new root, [2]: sha_low, [3]: sha_high
 
-	if (tx_data.length > 1) {
+	    if (tx_data.length > 1) {
             require(
-                tx_data.length == OP_SIZE * ridInfo.batch_size,
+                tx_data.length % OP_SIZE == 0,
                 "Verify: Insufficient delta operations"
             );
 
@@ -280,7 +277,7 @@ contract Proxy is DelphinusProxy {
                         instances[0][11],
                 "Inconstant: Sha data inconsistant"
             );
-	}
+	    }
 
         require(
             merkle_root ==
@@ -294,16 +291,18 @@ contract Proxy is DelphinusProxy {
         verifier.verify(proof, verify_instance, aux, instances);
 
 
-	if (tx_data.length > 1) {
-            sideEffectCalled = perform_txs(tx_data, ridInfo.batch_size);
-	}
+	    if (tx_data.length > 1) {
+            sideEffectCalled = perform_txs(tx_data);
+	    }
 
         uint256 new_merkle_root = (instances[0][4] << 192) +
             (instances[0][5] << 128) +
             (instances[0][6] << 64) +
             instances[0][7];
-        rid = ridInfo.rid + ridInfo.batch_size;
-        emit Settled(msg.sender, merkle_root, new_merkle_root, ridInfo.rid, sideEffectCalled);
+
+        rid = rid + 1;
+
+        emit Settled(msg.sender, merkle_root, new_merkle_root, rid, sideEffectCalled);
         merkle_root = new_merkle_root;
     }
 }

@@ -19,7 +19,6 @@ interface DelphinusProxy {
         uint256[] calldata proof,
         uint256[] calldata verify_instance,
         uint256[] calldata aux,
-        uint256[][] calldata target_instances,
-        RidInfo memory ridInfo
+        uint256[][] calldata target_instances
     ) external;
 }
