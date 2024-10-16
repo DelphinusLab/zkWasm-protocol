@@ -19,9 +19,10 @@ contract Withdraw is Transaction {
         uint256[] memory ops = new uint256[](4);
 
         uint256 data32;
+        uint256 offset = cursor + 32;
         assembly {
             // Load the 32 bytes of data from memory
-            data32 := mload(add(witness, 32))
+            data32 := mload(add(witness, offset))
         }
 
         //ops[0] = uint256( (data32 >> (31*8)) & 0xFF );
