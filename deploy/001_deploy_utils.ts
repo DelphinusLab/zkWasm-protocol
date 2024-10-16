@@ -8,34 +8,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let chainId = await hre.getChainId();
   console.log("deploying at netid:", chainId);
 
-  await deploy("Deposit", {
-    from: deployer,
-    log: true
-  });
   await deploy("Withdraw", {
     from: deployer,
     log: true
   });
-  await deploy("Swap", {
-    from: deployer,
-    log: true
-  });
-  await deploy("Retrive", {
-    from: deployer,
-    log: true
-  });
-  await deploy("Supply", {
-    from: deployer,
-    log: true
-  });
-  await deploy("AddPool", {
-    from: deployer,
-    log: true
-  });
-  await deploy("SetKey", {
-    from: deployer,
-    log: true
-  });
+
 };
 
 export default func;
