@@ -30,7 +30,7 @@ async function main(targetAccount: string) {
 
     console.log("mint gas:", gasAddress);
     let balance = await gas.balanceOf(deployer);
-    console.log("sender: balance before mint:", balance);    
+    console.log("sender: balance before mint:", balance);
 
     // Bind the transaction method to an action name
     let r = await txbinder.execute("mint", () => {

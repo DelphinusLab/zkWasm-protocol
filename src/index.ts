@@ -56,39 +56,6 @@ export class TxWithdraw {
   }
 }
 
-export class TxDeposit {
-  nonce: BN;
-  accountIndex: BN;
-  tokenIndex: BN;
-  amount: BN;
-  opcode: BN;
-  l1address: Address;
-
-  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address: Address) {
-    this.nonce = nonce;
-    this.accountIndex = accountIndex;
-    this.tokenIndex = tokenIndex;
-    this.amount = amount;
-    this.l1address = l1address;
-    this.opcode = new BN(0);
-  }
-
-  toBinary(endian: BN.Endianness) {
-    let bytes = [
-      this.opcode.toBuffer(endian, 1),
-      this.nonce.toBuffer(endian, 7),
-      this.accountIndex.toBuffer(endian, 4),
-      this.tokenIndex.toBuffer(endian, 4),
-      this.amount.toBuffer(endian, 32),
-    ]
-    .map((x) => {
-        return x.toString("hex");
-    })
-    .join("") + this.l1address.toU256Bytes();
-    return bytes;
-  }
-}
-
 export class TxData {
   oldroot: BN;
   newroot: BN;
