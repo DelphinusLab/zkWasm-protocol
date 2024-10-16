@@ -2,8 +2,7 @@
 pragma solidity ^0.8.0;
 
 // SideEffects
-uint8 constant _DEPOSIT = 0x0;
-uint8 constant _WITHDRAW = 0x1;
+uint8 constant _WITHDRAW = 0x0;
 
 interface Transaction {
     /**

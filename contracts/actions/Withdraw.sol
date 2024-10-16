@@ -3,19 +3,13 @@ pragma solidity ^0.8.0;
 import "../Transaction.sol";
 
 contract Withdraw is Transaction {
-    function bytesToUint(bytes memory bs, uint256 start, uint256 len)
-        internal
-        pure
-        returns (uint256)
-    {
-        require(bs.length >= start + 32, "slicing out of range");
-        uint256 x;
-        assembly {
-            x := mload(add(bs, add(start, 0x20)))
-        }
-        return x >> (32 - len) * 8;
-    }
-
+    /*
+     * u8:op
+     * u8:token_index
+     * u16: reserve (le mode)
+     * u160: addr (be mode)
+     * u64: amount (be mode)
+     */
     function sideEffect(bytes memory witness, uint256 cursor)
         public
         pure
@@ -23,14 +17,24 @@ contract Withdraw is Transaction {
         returns (uint256[] memory)
     {
         uint256[] memory ops = new uint256[](4);
-        uint256 tokenIdx = bytesToUint(witness, cursor + 14, 2);
-        uint256 transferAmount = bytesToUint(witness, cursor + 16, 32);
-        uint256 l1recipent = bytesToUint(witness, cursor + 48, 32);
 
+        uint256 data32;
+        assembly {
+            // Load the 32 bytes of data from memory
+            data32 := mload(add(witness, 32))
+        }
+
+        //ops[0] = uint256( (data32 >> (31*8)) & 0xFF );
         ops[0] = _WITHDRAW;
-        ops[1] = tokenIdx;
-        ops[2] = transferAmount;
-        ops[3] = l1recipent;
+
+        // token index
+        ops[1] = uint256( (data32 >> (30*8)) & 0x00FF );
+
+        // amount to withdraw (wei not considered
+        ops[2] = uint256( data32 & 0xFFFFFFFFFFFFFFFF );
+
+        // recipent address
+        ops[3] = uint256( (data32 >> (8*8)) & 0x00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF );
         return ops;
     }
 }
