@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { TxData, TxDeposit, TxWithdraw, Address } from "../src/index";
+import { TxData, TxWithdraw, Address } from "../src/index";
 import { expect } from "chai";
 import { ProxyContract } from "../src/clients/contracts/proxy";
 import { test_verify } from "./test_utils";
@@ -35,21 +35,7 @@ describe("deposit_withdraw_test", async function () {
     // Get the address of the proxy contract
     const proxyAddress = await proxy.getAddress();
 
-    let txdeposit = new TxDeposit(
-      new BN(0),
-      new BN(0),
-      new BN(0),
-      new BN(1).shln(12),
-      new Address("D91A86B4D8551290655caCED21856eF6E532F2D4")
-    );
-    let txdatadeposit = new TxData(
-      new BN(initial_root, 16, "be"),
-      new BN(withdraw_root, 16, "be"),
-      [txdeposit]
-    );
     let txwithdraw= new TxWithdraw(
-      new BN(0),
-      new BN(0),
       new BN(0),
       new BN(1).shln(12),
       new Address("D91A86B4D8551290655caCED21856eF6E532F2D4"),
@@ -60,21 +46,6 @@ describe("deposit_withdraw_test", async function () {
       new BN(initial_root, 16, "be"),
       [txwithdraw]
     );
-
-    async function test_deposit() {
-      const proxyContract = new ProxyContract(proxyAddress);
-      await proxyContract.approve_deposit(txdeposit, l1account);
-      return test_verify(
-        proxy,
-        txdatadeposit,
-        "deposit"
-      );
-    }
-
-    let resDeposit = await test_deposit();
-
-    expect(resDeposit).to.not.equal(null);
-    expect(typeof(resDeposit)).to.not.equal("undefined");
 
     let resWithdraw = await test_verify(proxy, txdatawithdraw, "withdraw");
 
