@@ -10,7 +10,7 @@ export const chain_id = 11155111 //sepolia
 
 //export const priv_key = ""; //deployer key
 
-export const verifyAddress = "0xC6B5FcB5f4c1d93831a211706d47aA3Ae4ed6395"; //del-sepolia
+export const verifyAddress = "0xC1231299bbCAA5786cD0f70624E2A5Cd8b1FB6BB"; //del-sepolia
 
 export const proxyAddress = "0xB5a94ca2ad8cb29068492b136A4f23269595Ce57"; //sepolia
 
