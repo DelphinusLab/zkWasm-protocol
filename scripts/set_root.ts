@@ -3,6 +3,7 @@ import * as constants from "./const.ts";
 const BN = require('bn.js');
 const { ethers } = require("hardhat");
 
+//default root
 let merkle_root = new BigUint64Array([
     14789582351289948625n,
     10919489180071018470n,
