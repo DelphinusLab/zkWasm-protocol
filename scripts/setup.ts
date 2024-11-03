@@ -29,6 +29,7 @@ async function setup() {
     console.log("Proxy address: ", proxy.address);
 
     //2. depoly testtoken
+    /*
     const Token = await hre.ethers.getContractFactory("Token");
     const token = await Token.deploy();
     await token.deployed();
@@ -48,6 +49,7 @@ async function setup() {
 
     tx = await token.transfer(proxy.address, ethers.utils.parseUnits("1000000","ether")); //tbd
     await tx.wait();
+    */
 
     //3. set verifier
     //del verifier deployed by del

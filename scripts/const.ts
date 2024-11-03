@@ -9,6 +9,8 @@ export const proxyAddress = "0xB5a94ca2ad8cb29068492b136A4f23269595Ce57"; //sepo
 
 export const settlerAddress = "0x0A4815830E439F7d83aE1f6B7be60999BB35c527";
 
+export const tokenAddress = "0xbFe4a2FC0a2A88a789Da8607c7A6ABC69C766FA2";
+
 
 // not used
 export const targetAddr = "0xEFc304a114398ed8Eb2B4CaAFe7dEeAeA666e6E5"; //user address for test
