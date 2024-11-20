@@ -99,6 +99,16 @@ contract Proxy is DelphinusProxy {
         return cursor;
     }
 
+    function modifyToken(uint32 index, uint256 token) public onlyOwner{
+        require(_tmap[token] == false, "AddToken: Token Already Exist");
+
+	// Check if the index is within bounds of the array
+	require(index < _tokens.length, "Index out of bounds");
+
+	// Modify the token at the specified index
+	_tokens[index].token_uid = token;
+    }
+
     function allTokens() public view returns (TokenInfo[] memory) {
         return _tokens;
     }
