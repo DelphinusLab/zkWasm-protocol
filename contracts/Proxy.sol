@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./Verifier.sol";
 import "./Transaction.sol";
 import "./DelphinusProxy.sol";
 import "./Data.sol";
 import "./TransferHelper.sol";
 
-contract Proxy is DelphinusProxy {
-    event TopUp(uint256 l1token, address account, uint256 amount);
+contract Proxy is DelphinusProxy, ReentrancyGuard {
+    event TopUp(uint256 l1token, address account, uint64 pid_1, uint64 pid_2, uint256 amount);
     event WithDraw(address l1token, address l1account, uint256 amount);
     event Settled(address sender, uint256 merkle_root, uint256 new_merkle_root, uint256 rid, uint256 sideEffectCalled);
 
@@ -115,8 +116,10 @@ contract Proxy is DelphinusProxy {
 
     function topup (
         uint128 tidx,
+	uint64 pid_1,
+	uint64 pid_2,
         uint128 amount  //in wei
-    ) public {
+    ) nonReentrant public {
         uint256 tokenid = get_token_uid(tidx);
         require (_is_local(tokenid), "token is not a local erc token");
         address token = address(uint160(tokenid));
@@ -133,7 +136,7 @@ contract Proxy is DelphinusProxy {
 
 	    //Tbd: Charge fees to developer
 
-        emit TopUp(_l1_address(token), msg.sender, amount);
+        emit TopUp(_l1_address(token), msg.sender, pid_1, pid_2, amount);
     }
 
     /* In convention, the wasm image does not take wei into consideration thus we need to apply  amout * 1e18
@@ -258,9 +261,7 @@ contract Proxy is DelphinusProxy {
         uint256[] calldata verify_instance,
         uint256[] calldata aux,
         uint256[][] calldata instances
-    ) onlySettler public {
-	    // tbd: Add nonReentrant() if rm onlySettler
-
+    ) onlySettler nonReentrant public {
         uint256 sideEffectCalled;
 
 	    // skip image commitments verification if it is not set
