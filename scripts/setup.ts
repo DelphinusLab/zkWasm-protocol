@@ -58,7 +58,7 @@ async function setup() {
     //await dummyVerifier.deployed();
     //tx = await proxy.setVerifier(dummyVerifier.address);
 
-    tx = await proxy.setVerifier(constants.verifyAddress);
+    let tx = await proxy.setVerifier(constants.verifyAddress);
     await tx.wait();
 
     const verifier = await proxy.verifier();

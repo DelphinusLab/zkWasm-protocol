@@ -9,7 +9,7 @@ async function main() {
         var tx = await token.approve(proxy.address, ethers.utils.parseUnits("1000","ether")); //for deposit test
 	await tx.wait();
 
-	const result = await proxy.topup(0, 10);
+	const result = await proxy.topup(0, 2, 3, 10);
 	await result.wait();
 	console.log("result:", result)
 }
