@@ -29,24 +29,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     log: true
   });
 
-  const deposit = await get("Deposit");
   const withdraw = await get("Withdraw");
-  const swap = await get("Swap");
-  const retrive = await get("Retrive");
-  const supply = await get("Supply");
-  const addpool = await get("AddPool");
-  const setkey = await get("SetKey");
   //const zkverifier = await get("ZKPVerifier");
   const dmverifier = await get("DummyVerifier");
   
   const proxy = await hre.ethers.getContract<Proxy>("Proxy", deployer);
-  await proxy.addTransaction(deposit.address, true);
   await proxy.addTransaction(withdraw.address, true);
-  await proxy.addTransaction(swap.address, false);
-  await proxy.addTransaction(supply.address, false);
-  await proxy.addTransaction(retrive.address, false);
-  await proxy.addTransaction(addpool.address, false);
-  await proxy.addTransaction(setkey.address, false);
   // await proxy.addVerifier(zkverifier.address);
   await proxy.setVerifier(dmverifier.address);
 };

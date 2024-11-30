@@ -24,67 +24,31 @@ export class Address {
 }
 
 export class TxWithdraw {
-  nonce: BN;
-  accountIndex: BN;
+  opcode: BN;
   tokenIndex: BN;
   amount: BN;
-  opcode: BN;
-  l1address: Address;
+  l1address: BN;
 
-  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address: Address, networkId: number) {
-    this.nonce = nonce;
-    this.accountIndex = accountIndex;
+  constructor(tokenIndex:BN, amount:BN, l1address: Address, networkId: number) {
+    let addressBN = new BN(l1address.address, 16);
     this.tokenIndex = tokenIndex;
     this.amount = amount;
-    this.l1address = new Address(encodeL1address(l1address.address, networkId.toString(16)).toString(16));
+    this.l1address = addressBN;
     this.opcode = new BN(1);
   }
 
   toBinary(endian: BN.Endianness) {
     let bytes = [
       this.opcode.toBuffer(endian, 1),
-      this.nonce.toBuffer(endian, 7),
-      this.accountIndex.toBuffer(endian, 4),
-      this.tokenIndex.toBuffer(endian, 4),
-      this.amount.toBuffer(endian, 32),
+      this.tokenIndex.toBuffer(endian, 1),
+      new BN(0).toBuffer(endian, 2), // reserved 0
+      this.l1address.toBuffer(endian, 20), // address is always be
+      this.amount.toBuffer(endian, 8),
     ]
     .map((x) => {
         return x.toString("hex");
     })
-    .join("") + this.l1address.toU256Bytes();
-    return bytes;
-  }
-}
-
-export class TxDeposit {
-  nonce: BN;
-  accountIndex: BN;
-  tokenIndex: BN;
-  amount: BN;
-  opcode: BN;
-  l1address: Address;
-
-  constructor(nonce:BN, accountIndex:BN, tokenIndex:BN, amount:BN, l1address: Address) {
-    this.nonce = nonce;
-    this.accountIndex = accountIndex;
-    this.tokenIndex = tokenIndex;
-    this.amount = amount;
-    this.l1address = l1address;
-    this.opcode = new BN(0);
-  }
-
-  toBinary(endian: BN.Endianness) {
-    let bytes = [
-      this.opcode.toBuffer(endian, 1),
-      this.nonce.toBuffer(endian, 7),
-      this.accountIndex.toBuffer(endian, 4),
-      this.tokenIndex.toBuffer(endian, 4),
-      this.amount.toBuffer(endian, 32),
-    ]
-    .map((x) => {
-        return x.toString("hex");
-    })
-    .join("") + this.l1address.toU256Bytes();
+    .join("");
     return bytes;
   }
 }
@@ -164,10 +128,6 @@ export class TxData {
       [aux.toString()],
       [this.getVerifierInputs().map((x) => x.toString())], // BN format in dec
       //[this.getZkwasmInstances()],
-      {
-        rid: rid.rid.toString(),
-        batch_size: rid.batch_size.toString()
-      }
     )
   }
 }

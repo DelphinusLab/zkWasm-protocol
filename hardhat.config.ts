@@ -1,19 +1,20 @@
 import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
-import '@nomicfoundation/hardhat-ethers';
-import 'hardhat-deploy';
-import 'hardhat-deploy-ethers';
+//import "@nomicfoundation/hardhat-toolbox";
+//import '@nomicfoundation/hardhat-ethers';
+//import 'hardhat-deploy';
+//import 'hardhat-deploy-ethers';
+require("@nomicfoundation/hardhat-toolbox");
 
 // Import tasks
-import './tasks/token/mint-gas';
-import './tasks/token/mint-token';
+//import './tasks/token/mint-gas';
+//import './tasks/token/mint-token';
 
 // Ensure your configuration variables are set before executing the script
 const { vars } = require("hardhat/config");
 
 // Go to https://infura.io, sign up, create a new API key
 // in its dashboard, and add it to the configuration variables
-const INFURA_API_KEY = vars.get("INFURA_API_KEY");
+//const INFURA_API_KEY = vars.get("INFURA_API_KEY");
 
 // Add your Sepolia account private key to the configuration variables
 // To export your private key from Coinbase Wallet, go to
@@ -27,7 +28,7 @@ const config: HardhatUserConfig = {
   solidity: "0.8.24",
   networks: {
     sepolia: {
-      url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+      url: "https://rpc2.sepolia.org",
       accounts: [SEPOLIA_PRIVATE_KEY],
     },
     localhost: {

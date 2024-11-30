@@ -1,14 +1,17 @@
 # zkWasm-protocol
+
+This is a common convention for settlement of ZKWASM mini-rollups
+
+
 ## transaction format
-### Each transaction has 80 bytes in total
-
-- op: 1 byte
-- nonce: 7 bytes
-- args: 72 bytes
-
-### Commands Structure
-- common struct: accountIndex(4 bytes) objectIndex(4 bytes)
-- opcode: enum { deposit, withdraw, ... }
+### Each transaction has 32 bytes in total
+```
+u8:op
+u8:token_index
+u16: reserve (le mode)
+u160: addr (be mode)
+u64: amount (be mode)
+```
 
 ## How to use
 ### Install dependencies

@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { TxData, Tx, TxDeposit, TxWithdraw, Address} from "../src/index";
+import { TxData, Tx, TxWithdraw, Address} from "../src/index";
 import { getChainId } from "hardhat";
 
 // This is the root hash in little-endian
@@ -28,24 +28,13 @@ function gen_inputs(root: Uint8Array, tx: Tx, comments: string) {
 async function main() {
   let chainId = await getChainId();
 
-  let txdeposit = new TxDeposit(
-    new BN(0),
-    new BN(0),
-    new BN(0),
-    new BN(1).shln(12),
-    new Address("D91A86B4D8551290655caCED21856eF6E532F2D4")
-  );
-
   let txwithdraw = new TxWithdraw(
-    new BN(0),
-    new BN(0),
     new BN(0),
     new BN(1).shln(12),
     new Address("D91A86B4D8551290655caCED21856eF6E532F2D4"),
     Number(chainId)
   );
 
-  gen_inputs(initial_root, txdeposit, "deposit");
   gen_inputs(withdraw_root, txwithdraw, "withdraw");
 }
 
