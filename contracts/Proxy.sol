@@ -101,7 +101,7 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
     }
 
     function modifyToken(uint32 index, uint256 token) public onlyOwner{
-        require(_tmap[token] == false, "AddToken: Token Already Exist");
+        require(_tmap[token] == true, "AddToken: Token Already Exist");
 
 	// Check if the index is within bounds of the array
 	require(index < _tokens.length, "Index out of bounds");

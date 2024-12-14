@@ -6,9 +6,11 @@ const { ethers } = require("hardhat");
 async function main() {
 	const proxy = await ethers.getContractAt("Proxy", constants.proxyAddress);
 
-    const result = await proxy.getProxyInfo();
+    let result = await proxy.getProxyInfo();
 	console.log("result:", result)
 
+    result = await proxy.allTokens();
+	console.log("result:", result)
 }
 
 main().catch((error) => {
