@@ -19,12 +19,12 @@ main().catch((error) => {
 async function setup() {
     const proxy = await ethers.getContractAt("Proxy", constants.proxyAddress);
     //2. depoly testtoken
-    const Token = await hre.ethers.getContractFactory("Burger");
-    const token = await Token.deploy();
+    const Token = await hre.ethers.getContractFactory("Token");
+    const token = await Token.deploy(proxy.address);
     await token.deployed();
     console.log("tokenaddr, ", token.address);
-    let tx = await token.transfer(proxy.address, ethers.utils.parseUnits("1000000","ether")); //tbd
-    await tx.wait();
+    //let tx = await token.transfer(proxy.address, ethers.utils.parseUnits("1000000","ether")); //tbd
+    //await tx.wait();
     return;
 }
 

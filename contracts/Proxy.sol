@@ -100,14 +100,12 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
         return cursor;
     }
 
-    function modifyToken(uint32 index, uint256 token) public onlyOwner{
-        require(_tmap[token] == true, "AddToken: Token Already Exist");
-
+    function modifyToken(uint32 index, uint256 newtoken) public onlyOwner{
 	// Check if the index is within bounds of the array
 	require(index < _tokens.length, "Index out of bounds");
 
 	// Modify the token at the specified index
-	_tokens[index].token_uid = token;
+	_tokens[index].token_uid = newtoken;
     }
 
     function allTokens() public view returns (TokenInfo[] memory) {
