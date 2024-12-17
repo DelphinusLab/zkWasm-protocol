@@ -1,15 +1,15 @@
 //for gl start
 export const endpoint = "https://rpc.zkwasmhub.com:8090";
 
-export const chain_id = 11155111 //sepolia
+export const chain_id = 56 //bsc
 
-export const verifyAddress = "0xC1231299bbCAA5786cD0f70624E2A5Cd8b1FB6BB"; //del-sepolia
+export const verifyAddress = "0xE280829CdCEf3A51c9FBC83d031604325Dac5400"; //del-bsc
 
-export const proxyAddress = "0x4Ca63928470Fa798453Ab5A319175Ae2E4681eCe"; //sepolia
+export const proxyAddress = "0x73DDEbd47EcD0773D5Eb99B7118Bf2de33B4B03A"; //bsc
 
-export const settlerAddress = "0x0A4815830E439F7d83aE1f6B7be60999BB35c527";
+export const settlerAddress = "0xDBBF6de09f068A376A3AeA7e4300Ae4C2252B528";
 
-export const tokenAddress = "0xbFe4a2FC0a2A88a789Da8607c7A6ABC69C766FA2";
+export const tokenAddress = "0x27e11ceC24f205DCeB469dcfA918af6e0CB7438c";
 
 /*
     14789582351289948625n,
