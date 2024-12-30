@@ -50,6 +50,10 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
         return _tokens[tidx].token_uid;
     }
 
+    function getSettler() public view returns (address) {
+        return _settler;
+    }
+
     function setOwner(address new_owner) external onlyOwner {
         _proxy_info.owner = new_owner;
     }
