@@ -107,11 +107,22 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
     function modifyToken(uint32 index, uint256 token) public onlyOwner{
         require(_tmap[token] == false, "AddToken: Token Already Exist");
 
-	// Check if the index is within bounds of the array
-	require(index < _tokens.length, "Index out of bounds");
+        // Check if the index is within bounds of the array
+        require(index < _tokens.length, "Index out of bounds");
 
-	// Modify the token at the specified index
-	_tokens[index].token_uid = token;
+        // Get original token_uid
+        uint256 oldToken = _tokens[index].token_uid;
+
+        // Remove original token_uid from _tamp
+        if (oldToken != 0) {
+            _tmap[oldToken] = false;
+        }
+
+        // Modify the token at the specified index
+        _tokens[index].token_uid = token;
+
+        // Add new token into _tmap
+        _tmap[token] = true;
     }
 
     function allTokens() public view returns (TokenInfo[] memory) {
@@ -120,8 +131,8 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
 
     function topup (
         uint128 tidx,
-	uint64 pid_1,
-	uint64 pid_2,
+        uint64 pid_1,
+        uint64 pid_2,
         uint128 amount  //in wei
     ) nonReentrant public {
         uint256 tokenid = get_token_uid(tidx);
