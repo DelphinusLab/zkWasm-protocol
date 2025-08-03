@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 // SideEffects
 uint8 constant _WITHDRAW = 0x0;
+uint8 constant _TOKEN_LAUNCH = 0x1;
 
 interface Transaction {
     /**

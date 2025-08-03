@@ -7,11 +7,39 @@ import "./Transaction.sol";
 import "./DelphinusProxy.sol";
 import "./Data.sol";
 import "./TransferHelper.sol";
+import "./LaunchpadToken.sol";
+
+// Uniswap V2 interfaces
+interface IUniswapV2Factory {
+    function createPair(address tokenA, address tokenB) external returns (address pair);
+}
+
+interface IUniswapV2Router02 {
+    function addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint amountADesired,
+        uint amountBDesired,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountA, uint amountB, uint liquidity);
+}
 
 contract Proxy is DelphinusProxy, ReentrancyGuard {
     event TopUp(uint256 l1token, address account, uint64 pid_1, uint64 pid_2, uint256 amount);
     event WithDraw(address l1token, address l1account, uint256 amount);
     event Settled(address sender, uint256 merkle_root, uint256 new_merkle_root, uint256 rid, uint256 sideEffectCalled);
+    event TokenLaunched(
+        uint256 indexed project_id, 
+        address indexed token, 
+        uint256 total_supply, 
+        uint256 actual_token_amount, 
+        uint256 actual_usdt_amount, 
+        uint256 lp_tokens, 
+        address indexed lp_recipient
+    );
 
     TokenInfo[] public _tokens;
     Transaction[] public transactions;
@@ -26,6 +54,11 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
 
     mapping(uint256 => bool) private _tmap;
     mapping(uint256 => bool) private hasSideEffect;
+    
+    // Uniswap V2 addresses (should be set by owner)
+    address public uniswapV2Factory;
+    address public uniswapV2Router;
+    address public usdtToken; // USDT token address
 
     modifier onlyOwner() {
         require(msg.sender == _proxy_info.owner, "Only owner can call this function");
@@ -78,6 +111,16 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
 
     function setWithdrawLimit(uint256 amount) public onlyOwner {
         withdrawLimit = amount;
+    }
+
+    function setUniswapAddresses(
+        address _factory,
+        address _router,
+        address _usdt
+    ) external onlyOwner {
+        uniswapV2Factory = _factory;
+        uniswapV2Router = _router;
+        usdtToken = _usdt;
     }
 
     function getProxyInfo() public view returns (ProxyInfo memory) {
@@ -228,10 +271,131 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
                     deltas[cursor + 3]
                 );
                 cursor = cursor + 4;
+            } else if (delta_code == _TOKEN_LAUNCH) {
+                require(
+                    deltas.length >= cursor + 5,
+                    "TokenLaunch: Insufficient arg number"
+                );
+                _tokenLaunch(
+                    uint128(deltas[cursor + 1]), // project_id
+                    uint128(deltas[cursor + 2]), // target_amount
+                    deltas[cursor + 3],          // token_supply
+                    uint64(deltas[cursor + 4])   // token_symbol
+                );
+                cursor = cursor + 5;
             } else {
                 revert("SideEffect: UnknownSideEffectCode");
             }
         }
+    }
+
+    function _tokenLaunch(
+        uint128 project_id,
+        uint128 target_amount,
+        uint256 token_supply,
+        uint64 token_symbol
+    ) private {
+        require(uniswapV2Factory != address(0), "Uniswap factory not set");
+        require(uniswapV2Router != address(0), "Uniswap router not set");
+        require(usdtToken != address(0), "USDT token not set");
+        
+        // Validate parameters
+        require(project_id < 256, "Project ID too large");
+        require(token_supply > 0, "Token supply must be greater than zero");
+        require(target_amount > 0, "Target amount must be greater than zero");
+        
+        // Create new ERC20 token
+        string memory tokenSymbolStr = _uint64ToString(token_symbol);
+        string memory tokenName = string(abi.encodePacked(tokenSymbolStr, " Token"));
+        
+        LaunchpadToken newToken = new LaunchpadToken(
+            tokenName,
+            tokenSymbolStr,
+            token_supply,
+            18, // 18 decimals
+            project_id,
+            address(this) // Proxy contract owns the tokens initially
+        );
+        
+        // Add token to the tokens array at the correct index
+        // Ensure the token index matches project_id
+        while (_tokens.length <= project_id) {
+            if (_tokens.length == project_id) {
+                // Add the new token at the correct index
+                _tokens.push(TokenInfo(_l1_address(address(newToken))));
+                _proxy_info.amount_token = uint32(_tokens.length);
+                _tmap[_l1_address(address(newToken))] = true;
+            } else {
+                // Add placeholder tokens if needed
+                _tokens.push(TokenInfo(0));
+                _proxy_info.amount_token = uint32(_tokens.length);
+            }
+        }
+        
+        // Calculate liquidity amounts
+        uint256 usdtAmount = (target_amount * 1e18) / 2; // Half of target_amount in USDT (assuming 18 decimals)
+        uint256 tokenAmount = (token_supply * 20) / 100; // 20% of token supply
+        
+        // Transfer tokens for liquidity to this contract (already owned by this contract)
+        // Transfer USDT for liquidity (assuming contract has enough USDT)
+        IERC20 usdt = IERC20(usdtToken);
+        require(usdt.balanceOf(address(this)) >= usdtAmount, "Insufficient USDT balance");
+        
+        // Approve router to spend tokens using safe approve
+        TransferHelper.safeApprove(address(newToken), uniswapV2Router, tokenAmount);
+        TransferHelper.safeApprove(usdtToken, uniswapV2Router, usdtAmount);
+        
+        // Add liquidity to Uniswap V2
+        IUniswapV2Router02 router = IUniswapV2Router02(uniswapV2Router);
+        (uint amountA, uint amountB, uint liquidity) = router.addLiquidity(
+            address(newToken),
+            usdtToken,
+            tokenAmount,
+            usdtAmount,
+            (tokenAmount * 95) / 100, // 5% slippage tolerance
+            (usdtAmount * 95) / 100,  // 5% slippage tolerance
+            _proxy_info.owner, // LP tokens go to contract owner for liquidity management
+            block.timestamp + 300 // 5 minute deadline
+        );
+        
+        emit TokenLaunched(project_id, address(newToken), token_supply, amountA, amountB, liquidity, _proxy_info.owner);
+    }
+
+    // Helper function to convert uint64 to string (interpreting as packed bytes)
+    function _uint64ToString(uint64 value) private pure returns (string memory) {
+        if (value == 0) {
+            return "TOKEN";
+        }
+        
+        // Convert uint64 to bytes and then to string
+        // Since value is already converted from LE to BE in TokenLaunch.sol,
+        // we extract bytes in natural order (little-endian extraction from big-endian value)
+        bytes memory buffer = new bytes(8);
+        for (uint i = 0; i < 8; i++) {
+            uint8 byteValue = uint8(value >> (i * 8));
+            if (byteValue == 0) break; // Stop at null terminator
+            buffer[i] = bytes1(byteValue); // Store in natural order
+        }
+        
+        // Find actual length (excluding null bytes from the end)
+        uint actualLength = 0;
+        for (uint i = 0; i < 8; i++) {
+            if (buffer[i] != 0) {
+                actualLength = i + 1; // Length includes this non-zero byte
+            }
+        }
+        
+        if (actualLength == 0) {
+            return "TOKEN";
+        }
+        
+        // Create result with actual length
+        bytes memory result = new bytes(actualLength);
+        for (uint i = 0; i < actualLength; i++) {
+            result[i] = buffer[i];
+        }
+        
+        return string(result);
     }
 
     uint256 constant OP_SIZE = 32; // 32 bytes for each transaction

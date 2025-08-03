@@ -14,3 +14,5 @@ package-lock.json
 # solidity-coverage files
 /coverage
 /coverage.json
+
+/docs
