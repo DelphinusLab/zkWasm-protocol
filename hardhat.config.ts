@@ -1,8 +1,4 @@
 import { HardhatUserConfig } from "hardhat/config";
-//import "@nomicfoundation/hardhat-toolbox";
-//import '@nomicfoundation/hardhat-ethers';
-//import 'hardhat-deploy';
-//import 'hardhat-deploy-ethers';
 require("@nomicfoundation/hardhat-toolbox");
 
 // Import tasks
@@ -50,13 +46,6 @@ const config: HardhatUserConfig = {
     localhost: {
       url: "http://127.0.0.1:8545"
     }
-  },
-  namedAccounts: {
-    // By default, we use the first account as deployer
-    // Take sepolia for example, the first account corresponds to the sepolia private key
-    // We already set the sepolia private key in the configuration variables,
-    // so we don't need to set it here
-    deployer: 0
   }
 };
 
