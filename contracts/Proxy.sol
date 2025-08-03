@@ -59,6 +59,7 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
     address public uniswapV2Factory;
     address public uniswapV2Router;
     address public usdtToken; // USDT token address
+    uint8 public usdtDecimals = 18; // USDT decimals (18 for BSC, 6 for Ethereum/Tron)
 
     modifier onlyOwner() {
         require(msg.sender == _proxy_info.owner, "Only owner can call this function");
@@ -121,6 +122,11 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
         uniswapV2Factory = _factory;
         uniswapV2Router = _router;
         usdtToken = _usdt;
+    }
+
+    function setUsdtDecimals(uint8 _decimals) external onlyOwner {
+        require(_decimals > 0 && _decimals <= 18, "Invalid decimals");
+        usdtDecimals = _decimals;
     }
 
     function getProxyInfo() public view returns (ProxyInfo memory) {
@@ -311,7 +317,7 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
         LaunchpadToken newToken = new LaunchpadToken(
             tokenName,
             tokenSymbolStr,
-            token_supply,
+            token_supply * 1e18, // Convert to wei (18 decimals)
             18, // 18 decimals
             project_id,
             address(this) // Proxy contract owns the tokens initially
@@ -333,8 +339,9 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
         }
         
         // Calculate liquidity amounts
-        uint256 usdtAmount = (target_amount * 1e18) / 2; // Half of target_amount in USDT (assuming 18 decimals)
-        uint256 tokenAmount = (token_supply * 20) / 100; // 20% of token supply
+        // Both target_amount and token_supply are passed as integers (not wei), so we need to convert both to wei
+        uint256 usdtAmount = (target_amount * (10 ** usdtDecimals)) / 2; // Half of target_amount in USDT smallest unit
+        uint256 tokenAmount = (token_supply * 1e18 * 20) / 100; // 20% of token supply in wei (18 decimals)
         
         // Transfer tokens for liquidity to this contract (already owned by this contract)
         // Transfer USDT for liquidity (assuming contract has enough USDT)

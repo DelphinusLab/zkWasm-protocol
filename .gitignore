@@ -16,3 +16,4 @@ package-lock.json
 /coverage.json
 
 /docs
+.env
