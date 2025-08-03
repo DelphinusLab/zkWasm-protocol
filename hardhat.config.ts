@@ -25,7 +25,23 @@ const { vars } = require("hardhat/config");
 const SEPOLIA_PRIVATE_KEY = vars.get("SEPOLIA_PRIVATE_KEY");
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.24",
+  solidity: {
+    version: "0.8.24",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,  // Lower runs = smaller contract size, higher gas cost
+        details: {
+          yul: true,
+          yulDetails: {
+            stackAllocation: true,
+            optimizerSteps: "dhfoDgvulfnTUtnIf"  // Default optimization sequence
+          }
+        }
+      },
+      viaIR: false  // Set to true for even more optimization (but slower compilation)
+    }
+  },
   networks: {
     sepolia: {
       url: "https://rpc2.sepolia.org",
