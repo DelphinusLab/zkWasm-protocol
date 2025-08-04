@@ -1,24 +1,22 @@
 import { HardhatUserConfig } from "hardhat/config";
 require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
 
 // Import tasks
 //import './tasks/token/mint-gas';
 //import './tasks/token/mint-token';
 
-// Ensure your configuration variables are set before executing the script
-const { vars } = require("hardhat/config");
-
-// Go to https://infura.io, sign up, create a new API key
-// in its dashboard, and add it to the configuration variables
-//const INFURA_API_KEY = vars.get("INFURA_API_KEY");
-
-// Add your Sepolia account private key to the configuration variables
-// To export your private key from Coinbase Wallet, go to
-// Settings > Developer Settings > Show private key
-// To export your private key from Metamask, open Metamask and
-// go to Account Details > Export Private Key
-// Beware: NEVER put real Ether into testing accounts
-const SEPOLIA_PRIVATE_KEY = vars.get("SEPOLIA_PRIVATE_KEY");
+// Get private key from environment variables
+// Priority: process.env > hardhat vars
+const SEPOLIA_PRIVATE_KEY = process.env.SEPOLIA_PRIVATE_KEY || (() => {
+    try {
+        const { vars } = require("hardhat/config");
+        return vars.get("SEPOLIA_PRIVATE_KEY");
+    } catch (error) {
+        console.warn("⚠️  No SEPOLIA_PRIVATE_KEY found in environment or hardhat vars");
+        return undefined;
+    }
+})();
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -40,8 +38,11 @@ const config: HardhatUserConfig = {
   },
   networks: {
     sepolia: {
-      url: "https://rpc2.sepolia.org",
-      accounts: [SEPOLIA_PRIVATE_KEY],
+      url: process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com",
+      accounts: SEPOLIA_PRIVATE_KEY ? [SEPOLIA_PRIVATE_KEY] : [],
+      gas: 6000000,
+      gasPrice: 30000000000, // 30 gwei for faster confirmation
+      timeout: 120000, // 2 minutes timeout
     },
     localhost: {
       url: "http://127.0.0.1:8545"

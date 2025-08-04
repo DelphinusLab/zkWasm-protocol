@@ -13,6 +13,7 @@
     "@typechain/hardhat": "^6.1.5",
     "chai": "^4.3.7",
     "crypto-js": "^4.2.0",
+    "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
     "hardhat": "^2.13.0",
     "hardhat-gas-reporter": "^1.0.9",
@@ -22,18 +23,22 @@
     "zkwasm-service-helper": "github:DelphinusLab/zkWasm-service-helper"
   },
   "scripts": {
-    "setup": "npx hardhat run scripts/setup.ts",
-    "setup-token-launch": "npx hardhat run scripts/setup_token_launch.ts",
-    "set-uniswap": "npx hardhat run scripts/set_uniswap_addresses.ts",
-    "set-usdt-decimals": "npx hardhat run scripts/set_usdt_decimals.ts",
-    "get-uniswap-config": "npx hardhat run scripts/get_uniswap_config.ts",
-    "set-owner": "npx hardhat run scripts/set_owner.ts",
-    "set-verifier": "npx hardhat run scripts/set_verifier.ts",
-    "set-settler": "npx hardhat run scripts/set_settler.ts",
-    "set-root": "npx hardhat run scripts/set_root.ts",
-    "add-token": "npx hardhat run scripts/add_token.ts",
-    "get-info": "npx hardhat run scripts/getInfo.ts",
-    "topup": "npx hardhat run scripts/topup.ts"
+    "clean": "rm -f scripts/*.js && echo 'Cleaned all JavaScript files from scripts directory'",
+    "setup": "npx hardhat run scripts/setup.ts --network sepolia",
+    "setup-token-launch": "npx hardhat run scripts/setup_token_launch.ts --network sepolia",
+    "set-uniswap": "npx hardhat run scripts/set_uniswap_addresses.ts --network sepolia",
+    "set-usdt-decimals": "npx hardhat run scripts/set_usdt_decimals.ts --network sepolia",
+    "get-uniswap-config": "npx hardhat run scripts/get_uniswap_config.ts --network sepolia",
+    "set-owner": "npx hardhat run scripts/set_owner.ts --network sepolia",
+    "set-verifier": "npx hardhat run scripts/set_verifier.ts --network sepolia",
+    "set-settler": "npx hardhat run scripts/set_settler.ts --network sepolia",
+    "set-root": "npx hardhat run scripts/set_root.ts --network sepolia",
+    "add-token": "npx hardhat run scripts/add_token.ts --network sepolia",
+    "get-info": "npx hardhat run scripts/getInfo.ts --network sepolia",
+    "topup": "npx hardhat run scripts/topup.ts --network sepolia",
+    "deploy-sepolia": "npx hardhat run scripts/deploy_sepolia_complete.ts --network sepolia",
+    "fund-proxy": "npx hardhat run scripts/fund_proxy_sepolia.ts --network sepolia",
+    "test-token-launch": "npx hardhat run scripts/test_token_launch_sepolia.ts --network sepolia"
   },
   "devDependencies": {
     "ts-generator": "^0.1.1"

@@ -242,9 +242,37 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
         return cursor;
     }
 
+    function modifyTransaction(uint8 index, address txaddr, bool sideEffect) public onlyOwner {
+        // Check if the index is within bounds of the array
+        require(index < transactions.length, "Transaction index out of bounds");
+        
+        // Modify the transaction at the specified index
+        transactions[index] = Transaction(txaddr);
+        
+        // Update the sideEffect flag
+        hasSideEffect[index] = sideEffect;
+    }
+
+    function setSideEffect(uint8 index, bool sideEffect) public onlyOwner {
+        // Check if the index is within bounds of the array
+        require(index < transactions.length, "Transaction index out of bounds");
+        
+        // Update only the sideEffect flag
+        hasSideEffect[index] = sideEffect;
+    }
+
     function _get_transaction(uint8 tid) public view returns (Transaction) {
         require(transactions.length > tid, "TX index out of bound");
         return transactions[tid];
+    }
+
+    function allTransactions() public view returns (Transaction[] memory) {
+        return transactions;
+    }
+
+    function getTransactionInfo(uint8 index) public view returns (address txAddress, bool sideEffect) {
+        require(index < transactions.length, "Transaction index out of bounds");
+        return (address(transactions[index]), hasSideEffect[index]);
     }
 
     /* encode the l1 address into token_uid */
@@ -325,17 +353,32 @@ contract Proxy is DelphinusProxy, ReentrancyGuard {
         
         // Add token to the tokens array at the correct index
         // Ensure the token index matches project_id
-        while (_tokens.length <= project_id) {
-            if (_tokens.length == project_id) {
-                // Add the new token at the correct index
-                _tokens.push(TokenInfo(_l1_address(address(newToken))));
-                _proxy_info.amount_token = uint32(_tokens.length);
-                _tmap[_l1_address(address(newToken))] = true;
-            } else {
-                // Add placeholder tokens if needed
-                _tokens.push(TokenInfo(0));
-                _proxy_info.amount_token = uint32(_tokens.length);
+        if (_tokens.length <= project_id) {
+            // Need to expand array to accommodate project_id
+            while (_tokens.length <= project_id) {
+                if (_tokens.length == project_id) {
+                    // Add the new token at the correct index
+                    _tokens.push(TokenInfo(_l1_address(address(newToken))));
+                    _proxy_info.amount_token = uint32(_tokens.length);
+                    _tmap[_l1_address(address(newToken))] = true;
+                } else {
+                    // Add placeholder tokens if needed
+                    _tokens.push(TokenInfo(0));
+                    _proxy_info.amount_token = uint32(_tokens.length);
+                }
             }
+        } else {
+            // Array is already long enough, modify existing position
+            uint256 existingToken = _tokens[project_id].token_uid;
+            
+            if (existingToken != 0) {
+                // Slot is occupied, remove old token from map and replace
+                _tmap[existingToken] = false;
+            }
+            
+            // Set the new token at the specified index
+            _tokens[project_id].token_uid = _l1_address(address(newToken));
+            _tmap[_l1_address(address(newToken))] = true;
         }
         
         // Calculate liquidity amounts

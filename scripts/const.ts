@@ -5,9 +5,9 @@ export const chain_id = 11155111 //sepolia
 
 export const verifyAddress = "0xC1231299bbCAA5786cD0f70624E2A5Cd8b1FB6BB"; //del-sepolia
 
-export const proxyAddress = "0xB5a94ca2ad8cb29068492b136A4f23269595Ce57"; //sepolia
+export const proxyAddress = "0xC25E30D39D89E59ee0285e4e83C0C7aA3BA8f5cd"; //sepolia
 
-export const settlerAddress = "0x0A4815830E439F7d83aE1f6B7be60999BB35c527";
+export const settlerAddress = "0x1854af78d1ed98D15c26E1457563F67187be4Ac1";
 
 export const tokenAddress = "0xbFe4a2FC0a2A88a789Da8607c7A6ABC69C766FA2";
 

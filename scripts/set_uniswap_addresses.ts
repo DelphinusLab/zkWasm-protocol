@@ -11,9 +11,9 @@ const UNISWAP_ADDRESSES = {
     },
     // Sepolia Testnet
     11155111: {
-        factory: "0x7E0987E5b3a30e3f2828572Bb659A548460a3003", // Uniswap V2 Factory on Sepolia
-        router: "0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008",  // Uniswap V2 Router on Sepolia
-        usdt: "0x7169D38820dfd117C3FA1f22a697dBA58d90BA06"    // Mock USDT on Sepolia (18 decimals)
+        factory: "0xF62c03E08ada871A0bEb309762E260a7a6a880E6", // Uniswap V2 Factory on Sepolia
+        router: "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3",  // Uniswap V2 Router on Sepolia
+        usdt: "0xa72c34a08aaab2a576c4ae86285bae36260d9b99"    // Mock USDT on Sepolia (18 decimals)
     },
     // BSC Mainnet
     56: {

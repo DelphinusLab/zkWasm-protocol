@@ -17,31 +17,71 @@ const NETWORK_CONFIGS = {
     11155111: {
         name: "Sepolia Testnet",
         uniswap: {
-            factory: "0x7E0987E5b3a30e3f2828572Bb659A548460a3003",
-            router: "0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008",
-            usdt: "0x7169D38820dfd117C3FA1f22a697dBA58d90BA06"
+            factory: "0xF62c03E08ada871A0bEb309762E260a7a6a880E6",
+            router: "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3",
+            usdt: "0x7169D38820dfd117C3FA1f22a697dBA58d90BA06" // Your deployed DummyUSDT
         },
         usdtDecimals: 18
     },
-    // BSC Mainnet
+    // BNB Chain (BSC) - Official Uniswap V2 deployment
     56: {
-        name: "BSC Mainnet",
+        name: "BNB Chain",
         uniswap: {
-            factory: "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73",
-            router: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
+            factory: "0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6",
+            router: "0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24",
             usdt: "0x55d398326f99059fF775485246999027B3197955"
         },
         usdtDecimals: 18
     },
-    // BSC Testnet
-    97: {
-        name: "BSC Testnet",
+    // Arbitrum One
+    42161: {
+        name: "Arbitrum One",
         uniswap: {
-            factory: "0x6725F303b657a9451d8BA641348b6761A6CC7a17",
-            router: "0xD99D1c33F9fC3444f8101754aBC46c52416550D1",
-            usdt: "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd"
+            factory: "0xf1D7CC64Fb4452F05c498126312eBE29f30Fbcf9",
+            router: "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
+            usdt: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9" // USDT on Arbitrum
         },
-        usdtDecimals: 18
+        usdtDecimals: 6
+    },
+    // Optimism
+    10: {
+        name: "Optimism",
+        uniswap: {
+            factory: "0x0c3c1c532F1e39EdF36BE9Fe0bE1410313E074Bf",
+            router: "0x4A7b5Da61326A6379179b40d00F57E5bbDC962c2",
+            usdt: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58" // USDT on Optimism
+        },
+        usdtDecimals: 6
+    },
+    // Polygon
+    137: {
+        name: "Polygon",
+        uniswap: {
+            factory: "0x9e5A52f57b3038F1B8EeE45F28b3C1967e22799C",
+            router: "0xedf6066a2b290C185783862C7F4776A2C8077AD1",
+            usdt: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F" // USDT on Polygon
+        },
+        usdtDecimals: 6
+    },
+    // Base
+    8453: {
+        name: "Base",
+        uniswap: {
+            factory: "0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6",
+            router: "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
+            usdt: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2" // USDT on Base
+        },
+        usdtDecimals: 6
+    },
+    // Avalanche C-Chain
+    43114: {
+        name: "Avalanche",
+        uniswap: {
+            factory: "0x9e5A52f57b3038F1B8EeE45F28b3C1967e22799C",
+            router: "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
+            usdt: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7" // USDT on Avalanche
+        },
+        usdtDecimals: 6
     }
 };
 
