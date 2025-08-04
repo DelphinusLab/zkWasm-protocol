@@ -1,0 +1,38 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const bn_js_1 = require("bn.js");
+const initialRoot = new Uint8Array([166, 157, 178, 62, 35, 83, 140, 56, 9, 235, 134, 184, 20, 145, 63, 43, 245, 186, 75, 233, 43, 42, 187, 217, 104, 152, 219, 89, 125, 199, 161, 9]);
+const func = async function (hre) {
+    const { deployer } = await hre.getNamedAccounts();
+    const { deploy, get } = hre.deployments;
+    let rootBn = new bn_js_1.BN(initialRoot, 16, "be");
+    let rootBigInt = BigInt("0x" + rootBn.toString(16));
+    let chainId = await hre.getChainId();
+    console.log("netid:", chainId);
+    await deploy("Proxy", {
+        from: deployer,
+        args: [chainId, rootBigInt],
+        log: true
+    });
+    /*await deploy("ZKPVerifier", {
+      from: deployer,
+      args: [chainId],
+      log: true
+    });*/
+    await deploy("DummyVerifier", {
+        from: deployer,
+        log: true
+    });
+    const withdraw = await get("Withdraw");
+    const tokenLaunch = await get("TokenLaunch");
+    //const zkverifier = await get("ZKPVerifier");
+    const dmverifier = await get("DummyVerifier");
+    const proxy = await hre.ethers.getContract("Proxy", deployer);
+    // Add transactions in order: opcode 0 = Withdraw, opcode 1 = TokenLaunch
+    await proxy.addTransaction(withdraw.address, true);
+    await proxy.addTransaction(tokenLaunch.address, true);
+    // await proxy.addVerifier(zkverifier.address);
+    await proxy.setVerifier(dmverifier.address);
+};
+exports.default = func;
+func.tags = ['DeployBridge'];

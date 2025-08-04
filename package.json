@@ -21,6 +21,20 @@
     "typechain": "^8.1.1",
     "zkwasm-service-helper": "github:DelphinusLab/zkWasm-service-helper"
   },
+  "scripts": {
+    "setup": "npx hardhat run scripts/setup.ts",
+    "setup-token-launch": "npx hardhat run scripts/setup_token_launch.ts",
+    "set-uniswap": "npx hardhat run scripts/set_uniswap_addresses.ts",
+    "set-usdt-decimals": "npx hardhat run scripts/set_usdt_decimals.ts",
+    "get-uniswap-config": "npx hardhat run scripts/get_uniswap_config.ts",
+    "set-owner": "npx hardhat run scripts/set_owner.ts",
+    "set-verifier": "npx hardhat run scripts/set_verifier.ts",
+    "set-settler": "npx hardhat run scripts/set_settler.ts",
+    "set-root": "npx hardhat run scripts/set_root.ts",
+    "add-token": "npx hardhat run scripts/add_token.ts",
+    "get-info": "npx hardhat run scripts/getInfo.ts",
+    "topup": "npx hardhat run scripts/topup.ts"
+  },
   "devDependencies": {
     "ts-generator": "^0.1.1"
   }

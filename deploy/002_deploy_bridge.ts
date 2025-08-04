@@ -30,11 +30,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   const withdraw = await get("Withdraw");
+  const tokenLaunch = await get("TokenLaunch");
   //const zkverifier = await get("ZKPVerifier");
   const dmverifier = await get("DummyVerifier");
   
   const proxy = await hre.ethers.getContract<Proxy>("Proxy", deployer);
+  
+  // Add transactions in order: opcode 0 = Withdraw, opcode 1 = TokenLaunch
   await proxy.addTransaction(withdraw.address, true);
+  await proxy.addTransaction(tokenLaunch.address, true);
   // await proxy.addVerifier(zkverifier.address);
   await proxy.setVerifier(dmverifier.address);
 };

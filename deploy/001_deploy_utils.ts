@@ -13,6 +13,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     log: true
   });
 
+  await deploy("TokenLaunch", {
+    from: deployer,
+    log: true
+  });
+
 };
 
 export default func;

@@ -4,21 +4,15 @@ import "../Transaction.sol";
 
 contract TokenLaunch is Transaction {
     /*
-     * Transaction data format for TokenLaunch (opcode 1):
-     * WithdrawInfo encoding from Rust:
-     * - feature: u32 (project_id << 8 | 1) - LE encoded in bytes 0-3
-     * - address: [u8; 20] - constructed from limbs, contains token_supply and project_id
-     * - amount: u64 - target_amount - BE encoded in bytes 24-31
+     * Transaction data format for TokenLaunch (simplified):
+     * TokenLaunchInfo encoding from Rust:
+     * - bytes 0-7: project_id (LE)
+     * - bytes 8-15: target_amount (LE) 
+     * - bytes 16-23: token_supply (LE)
+     * - bytes 24-31: token_symbol (LE)
      * 
-     * limbs in Rust:
-     * - limbs[0]: target_amount (full 64 bits preserved)
-     * - limbs[1]: token_supply  
-     * - limbs[2]: token_symbol (directly, no encoding needed)
-     * 
-     * Address construction in Rust:
-     * - bytes 4-7: (limbs[0] >> 32) as u32 in LE = target_amount high 32 bits
-     * - bytes 8-15: limbs[1] in LE = token_supply
-     * - bytes 16-23: limbs[2] in LE = token_symbol (direct)
+     * All data is consistently stored in little-endian format,
+     * eliminating the need for complex endianness conversions.
      */
     function sideEffect(bytes memory witness, uint256 cursor)
         public
@@ -28,48 +22,42 @@ contract TokenLaunch is Transaction {
     {
         uint256[] memory ops = new uint256[](5);
 
-        uint256 data32;
+        // Load the 32 bytes of data from memory
         uint256 offset = cursor + 32;
+        bytes32 data32;
         assembly {
-            // Load the 32 bytes of data from memory
             data32 := mload(add(witness, offset))
         }
 
         // ops[0] = opcode (1 for token launch)
         ops[0] = _TOKEN_LAUNCH;
 
-        // ops[1] = project_id (from token index field - byte 1)
-        ops[1] = uint256( (data32 >> (30*8)) & 0x00FF );
+        // ops[1] = project_id (bytes 0-7, LE)
+        ops[1] = _extractU64LE(data32, 0);
 
-        // ops[2] = target_amount (from amount field - bytes 24-31, BE)
-        ops[2] = uint256( data32 & 0xFFFFFFFFFFFFFFFF );
+        // ops[2] = target_amount (bytes 8-15, LE)
+        ops[2] = _extractU64LE(data32, 8);
 
-        // ops[3] = token_supply (from address field bytes 8-15, stored as LE)
-        // Extract bytes 8-15 from the address field and convert from LE to native
-        uint256 token_supply_le = uint256( (data32 >> (8*8)) & 0xFFFFFFFFFFFFFFFF );
-        // Convert from little-endian to big-endian
-        ops[3] = ((token_supply_le & 0xFF) << 56) |
-                 (((token_supply_le >> 8) & 0xFF) << 48) |
-                 (((token_supply_le >> 16) & 0xFF) << 40) |
-                 (((token_supply_le >> 24) & 0xFF) << 32) |
-                 (((token_supply_le >> 32) & 0xFF) << 24) |
-                 (((token_supply_le >> 40) & 0xFF) << 16) |
-                 (((token_supply_le >> 48) & 0xFF) << 8) |
-                 ((token_supply_le >> 56) & 0xFF);
+        // ops[3] = token_supply (bytes 16-23, LE)
+        ops[3] = _extractU64LE(data32, 16);
 
-        // ops[4] = token_symbol (from address field bytes 16-23, stored as LE)
-        // Extract bytes 16-23 from the address field (token_symbol directly)
-        uint256 token_symbol_le = uint256( (data32 >> (16*8)) & 0xFFFFFFFFFFFFFFFF );
-        // Convert from little-endian to big-endian (64-bit)
-        ops[4] = ((token_symbol_le & 0xFF) << 56) |
-                 (((token_symbol_le >> 8) & 0xFF) << 48) |
-                 (((token_symbol_le >> 16) & 0xFF) << 40) |
-                 (((token_symbol_le >> 24) & 0xFF) << 32) |
-                 (((token_symbol_le >> 32) & 0xFF) << 24) |
-                 (((token_symbol_le >> 40) & 0xFF) << 16) |
-                 (((token_symbol_le >> 48) & 0xFF) << 8) |
-                 ((token_symbol_le >> 56) & 0xFF);
+        // ops[4] = token_symbol (bytes 24-31, LE)
+        ops[4] = _extractU64LE(data32, 24);
 
         return ops;
+    }
+
+    /// Extract a 64-bit little-endian value from bytes32 at given byte offset
+    function _extractU64LE(bytes32 data, uint256 byteOffset) private pure returns (uint256) {
+        require(byteOffset <= 24, "Invalid byte offset");
+        
+        uint256 result = 0;
+        for (uint256 i = 0; i < 8; i++) {
+            uint256 byteIndex = byteOffset + i;
+            uint256 byteValue = uint256(uint8(data[byteIndex]));
+            result |= (byteValue << (i * 8));
+        }
+        
+        return result;
     }
 } 
