@@ -32,7 +32,7 @@ async function main() {
     console.log("✅ Network: Sepolia Testnet");
     console.log();
     
-    let deployedContracts = {};
+    let deployedContracts: any = {};
     
     try {
         // Step 1: Deploy DummyPoints
@@ -112,6 +112,12 @@ async function main() {
         await tx.wait();
         console.log(`  ✅ Minted ${ethers.utils.formatUnits(deployerUsdtAmount, SEPOLIA_CONFIG.usdtDecimals)} USDT to deployer`);
         
+        // Transfer DummyPoints to Proxy contract for withdrawal operations
+        const pointsTransferAmount = ethers.utils.parseEther("500000000"); // 500M POINTS (half of supply)
+        tx = await dummyPoints.transfer(proxy.address, pointsTransferAmount);
+        await tx.wait();
+        console.log(`  ✅ Transferred ${ethers.utils.formatEther(pointsTransferAmount)} POINTS to Proxy`);
+        
         console.log();
         console.log("⚙️  CONFIGURING CONTRACTS");
         console.log("=".repeat(40));
@@ -155,11 +161,15 @@ async function main() {
         console.log();
         console.log("🔧 Step 11: Adding DummyPoints Token...");
         
-        // Convert address to uint256 for addToken
-        const pointsTokenUint = ethers.BigNumber.from(dummyPoints.address);
-        tx = await proxy.addToken(pointsTokenUint);
+        // Correctly format token UID with chain_id: UID = (chain_id << 160) | address
+        const chainId = SEPOLIA_CONFIG.chainId; // 11155111
+        const pointsAddress = dummyPoints.address;
+        const pointsTokenUid = ethers.BigNumber.from(chainId).shl(160).or(ethers.BigNumber.from(pointsAddress));
+        
+        tx = await proxy.addToken(pointsTokenUid);
         await tx.wait();
-        console.log(`  ✅ DummyPoints token added at index 0: ${dummyPoints.address}`);
+        console.log(`  ✅ DummyPoints token added at index 0: ${pointsAddress}`);
+        console.log(`  📋 Token UID: ${pointsTokenUid.toHexString()}`);
         
         // Step 12: Set Uniswap Addresses
         console.log();
@@ -208,13 +218,24 @@ async function main() {
         console.log(`  Opcode 1 (TokenLaunch): ${tokenLaunchTx}`);
         console.log();
         console.log("🪙 Tokens:");
-        console.log(`  Index 0 (Points): ${dummyPoints.address}`);
+        console.log(`  Index 0 (Points):`);
+        console.log(`    Address: ${dummyPoints.address}`);
+        console.log(`    UID: ${pointsToken.token_uid}`);
+        console.log(`    Chain ID from UID: ${ethers.BigNumber.from(pointsToken.token_uid).shr(160)}`);
         console.log();
         console.log("🏪 Uniswap Configuration:");
         console.log(`  Factory: ${factory}`);
         console.log(`  Router: ${router}`);
         console.log(`  USDT: ${usdt}`);
         console.log(`  USDT Decimals: ${decimals}`);
+        
+        // Verify token balances
+        const proxyPointsBalance = await dummyPoints.balanceOf(proxy.address);
+        const proxyUsdtBalance = await dummyUSDT.balanceOf(proxy.address);
+        console.log();
+        console.log("💰 Proxy Contract Balances:");
+        console.log(`  POINTS: ${ethers.utils.formatEther(proxyPointsBalance)}`);
+        console.log(`  USDT: ${ethers.utils.formatUnits(proxyUsdtBalance, SEPOLIA_CONFIG.usdtDecimals)}`);
         
         console.log();
         console.log("🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!");
@@ -236,16 +257,21 @@ async function main() {
         console.log();
         console.log("🔧 NEXT STEPS:");
         console.log("1. Update scripts/const.ts with the new proxy address");
-        console.log("2. Fund the proxy contract with USDT for liquidity operations");
+        console.log("2. Test withdraw points functionality (should now work!)");
         console.log("3. Test token launch functionality");
         console.log("4. Verify contracts on Etherscan if needed");
         
         console.log();
-        console.log("💰 FUNDING INSTRUCTIONS:");
-        console.log(`To fund the proxy with USDT for testing:`);
-        console.log(`1. Call dummyUSDT.faucet() to get USDT tokens`);
-        console.log(`2. Call dummyUSDT.transfer("${proxy.address}", amount) to fund the proxy`);
-        console.log(`3. Alternatively, use dummyUSDT.mint("${proxy.address}", amount) as owner`);
+        console.log("✅ FUNDING COMPLETED:");
+        console.log("- Proxy has been funded with 1B USDT for liquidity operations");
+        console.log("- Proxy has been funded with 500M POINTS for withdrawal operations");
+        console.log("- Deployer has 100M USDT for testing");
+        console.log("- Deployer has 500M POINTS remaining");
+        
+        console.log();
+        console.log("🔧 TOKEN CONFIGURATION FIXED:");
+        console.log("- Token Index 0 (POINTS) now has correct UID with chain_id");
+        console.log("- _is_local check should now pass for withdraw points operations");
         
     } catch (error) {
         console.error("❌ Deployment failed:", error);
