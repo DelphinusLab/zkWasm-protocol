@@ -37,6 +37,8 @@
     "get-info": "npx hardhat run scripts/getInfo.ts --network sepolia",
     "topup": "npx hardhat run scripts/topup.ts --network sepolia",
     "deploy-sepolia": "npx hardhat run scripts/deploy_sepolia_complete.ts --network sepolia",
+    "deploy-bsc": "npx hardhat run scripts/deploy_bsc_complete.ts --network bsc",
+    "deploy-bsc-testnet": "npx hardhat run scripts/deploy_bsc_complete.ts --network bscTestnet",
     "fund-proxy": "npx hardhat run scripts/fund_proxy_sepolia.ts --network sepolia",
     "test-token-launch": "npx hardhat run scripts/test_token_launch_sepolia.ts --network sepolia"
   },

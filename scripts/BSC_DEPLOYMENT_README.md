@@ -81,7 +81,13 @@ cd zkWasm-protocol
 # 确保已安装依赖
 npm install
 
-# 运行BSC部署脚本
+# 运行BSC主网部署脚本
+npm run deploy-bsc
+
+# 或者如果要在BSC测试网部署（用于测试）
+npm run deploy-bsc-testnet
+
+# 也可以直接使用hardhat命令
 npx hardhat run scripts/deploy_bsc_complete.ts --network bsc
 ```
 
